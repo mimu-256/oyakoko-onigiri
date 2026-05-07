@@ -49,26 +49,29 @@ body {
   }
 }
 
-/* 営業時間（hours.html）: 15px 固定 */
-body.hours-page {
+/* 営業時間ページ: 本文・フッターだけ 15px 固定（ヘッダーは .site-header と同じスケールに任せる） */
+body.hours-page .site-content,
+body.hours-page .site-bottom {
   font-size: 15px;
 }
 
 @media screen and (min-width: 782px) {
-  body.hours-page {
+  body.hours-page .site-content,
+  body.hours-page .site-bottom {
     font-size: 15px;
   }
 }
 
 @media screen and (min-width: 980px) {
-  body.hours-page {
+  body.hours-page .site-content,
+  body.hours-page .site-bottom {
     font-size: 15px;
   }
 }
 
 /*
- * 営業時間ページ: 本文は body 15px だが、.hours__lead や table.kaisha は
- * font-size: 1rem 等＝html 根（68%〜80%）基準のため 15px に届かない。em で body に揃える。
+ * 営業時間ページ: .site-content は 15px 固定。.hours__lead や table は
+ * font-size: 1rem 等だと html 根基準になるため、em で本文に揃える。
  */
 body.hours-page .hours__lead {
   font-size: 1.05em;
@@ -234,6 +237,8 @@ a:hover {
 .site-header {
   border-bottom: solid 1px #eee;
   margin-bottom: 3rem;
+  /* body と常に同じ文字サイズ（top-bar の %・ナビの % がページ間でずれないようにする） */
+  font-size: inherit;
 }
 
 @media screen and (min-width: 980px) {
@@ -269,10 +274,23 @@ a:hover {
 .site-title {
   clear: both;
   color: #111;
-  font-size: 1.75rem;
+  /* rem（html 根）ではなく body と連動する em — 営業時間ページ等でも他ページと店名サイズが一致 */
+  font-size: 1.27em;
   font-weight: 700;
   line-height: 1.5;
   margin: 0 0 0.2em;
+}
+
+@media screen and (min-width: 782px) {
+  .site-title {
+    font-size: 1.295em;
+  }
+}
+
+@media screen and (min-width: 980px) {
+  .site-title {
+    font-size: 1.318em;
+  }
 }
 
 .site-title a,
@@ -532,13 +550,21 @@ body.is-nav-open {
   }
 }
 
-/* 営業時間: 小画面は左右余白を減らして表を横いっぱい近く */
-@media (max-width: 600px) {
-  body.hours-page .container-content {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
+/* 営業時間ページ: 左右余白を常にヘッダー・フッター（20px / 40px）と同一にする */
+body.hours-page .container-content {
+  padding-left: 20px;
+  padding-right: 20px;
+}
 
+@media screen and (min-width: 782px) {
+  body.hours-page .container-content {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+/* 営業時間: 小画面の見出し・余白調整 */
+@media (max-width: 600px) {
   body.hours-page .site-content {
     margin-bottom: 2.25rem;
   }
@@ -971,16 +997,26 @@ table.kaisha.kaisha--week {
 .sns-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
+  gap: 1.5rem;
+  align-items: flex-start;
   margin-bottom: 0.75em;
 }
 
+.sns-links__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .sns-links__link {
-  display: inline-block;
-  line-height: 0;
   border-radius: 14px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.sns-links__link--image {
+  display: inline-block;
+  line-height: 0;
 }
 
 .sns-links__link:focus-visible {
@@ -997,10 +1033,12 @@ table.kaisha.kaisha--week {
   border-radius: 14px;
 }
 
-.sns-links__caption {
-  margin-top: 0;
-  margin-bottom: 1.8em;
+.sns-links__item-cap {
+  margin: 0;
   font-size: 0.95em;
+  text-align: center;
+  max-width: 10em;
+  line-height: 1.4;
 }
 
 .visually-hidden {
