@@ -1,0 +1,1005 @@
+/*
+ * 親孝行おにぎり — BusinessPress 準拠（oyakoko-onigiri.com のテーマ・カスタマイズに近づけたスタイル）
+ * 参照: https://oyakoko-onigiri.com/（WordPress / BusinessPress）
+ */
+
+html {
+  font-size: 68%;
+  overflow-x: hidden;
+}
+
+@media screen and (min-width: 782px) {
+  html {
+    font-size: 74%;
+  }
+}
+
+@media screen and (min-width: 980px) {
+  html {
+    font-size: 80%;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: #444;
+  background-color: #fff;
+  font-family: "游ゴシック体", YuGothic, "游ゴシック", "Yu Gothic", "メイリオ", Meiryo, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.8;
+  word-wrap: break-word;
+}
+
+@media screen and (min-width: 782px) {
+  body {
+    font-size: 16px;
+  }
+}
+
+@media screen and (min-width: 980px) {
+  body {
+    font-size: 17px;
+  }
+}
+
+/* 営業時間（hours.html）: 15px 固定 */
+body.hours-page {
+  font-size: 15px;
+}
+
+@media screen and (min-width: 782px) {
+  body.hours-page {
+    font-size: 15px;
+  }
+}
+
+@media screen and (min-width: 980px) {
+  body.hours-page {
+    font-size: 15px;
+  }
+}
+
+/*
+ * 営業時間ページ: 本文は body 15px だが、.hours__lead や table.kaisha は
+ * font-size: 1rem 等＝html 根（68%〜80%）基準のため 15px に届かない。em で body に揃える。
+ */
+body.hours-page .hours__lead {
+  font-size: 1.05em;
+}
+
+body.hours-page .hours__note {
+  font-size: 1em;
+}
+
+body.hours-page table.kaisha,
+body.hours-page table.kaisha.kaisha--week {
+  font-size: 1em;
+}
+
+body.hours-page .kaisha--week tbody th.kaisha--week__time {
+  font-size: 0.95em;
+}
+
+/* 週間表は太字不要（th / ◯ も含め site の本文ウェイトに合わせる） */
+body.hours-page table.kaisha.kaisha--week th,
+body.hours-page table.kaisha.kaisha--week td {
+  font-weight: 500;
+}
+
+body.hours-page table.kaisha.kaisha--week .kaisha--week__on,
+body.hours-page table.kaisha.kaisha--week .kaisha--week__dash,
+body.hours-page table.kaisha.kaisha--week .kaisha--week__timeFrom,
+body.hours-page table.kaisha.kaisha--week .kaisha--week__timeTo {
+  font-weight: 500;
+}
+
+::selection {
+  background-color: #def;
+}
+
+a {
+  color: #004c71;
+  text-decoration: underline;
+  transition: color 0.15s ease-in-out;
+}
+
+a:hover {
+  color: #004c71;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: #333;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 10000;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.skip:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+}
+
+/* —— ヘッダー（BusinessPress） —— */
+.top-bar-content,
+.main-header-content,
+.site-bottom-content {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 720px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+@media screen and (min-width: 782px) {
+  .top-bar-content,
+  .main-header-content,
+  .site-bottom-content {
+    max-width: 1120px;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+.top-bar {
+  background-color: #f4f5f6;
+  border-bottom: solid 1px #eee;
+  line-height: 32px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+}
+
+@media screen and (min-width: 782px) {
+  .top-bar {
+    padding-bottom: 10px;
+    padding-top: 10px;
+  }
+}
+
+.top-bar-main {
+  color: #888;
+  font-size: 80%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.top-bar-main li {
+  display: inline-block;
+  margin-bottom: 0;
+  margin-right: 16px;
+  vertical-align: middle;
+}
+
+.top-bar-main li:last-child {
+  margin-right: 0;
+}
+
+.top-bar-main a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.top-bar-main a:hover {
+  color: #111;
+}
+
+.top-bar-main li::before {
+  color: #999;
+  display: inline-block;
+  font: normal 16px/1 FontAwesome;
+  -webkit-font-smoothing: antialiased;
+  margin-right: 5px;
+  position: relative;
+  top: 1px;
+  vertical-align: middle;
+}
+
+.top-bar-main li.top-bar-main-phone::before {
+  content: "\f10b";
+  font-size: 170%;
+}
+
+.top-bar-main li.top-bar-main-contact::before {
+  content: "\f003";
+  font-size: 110%;
+}
+
+.top-bar-main li.top-bar-main-access::before {
+  content: "\f041";
+  font-size: 135%;
+}
+
+@media screen and (min-width: 782px) {
+  .top-bar-main li {
+    margin-right: 24px;
+  }
+  .top-bar-main li::before {
+    margin-right: 8px;
+    top: -2px;
+  }
+}
+
+.site-header {
+  border-bottom: solid 1px #eee;
+  margin-bottom: 3rem;
+}
+
+@media screen and (min-width: 980px) {
+  .site-header {
+    margin-bottom: 5rem;
+  }
+}
+
+.main-header {
+  padding-bottom: 15px;
+  padding-top: 15px;
+}
+
+@media screen and (min-width: 782px) {
+  .main-header {
+    padding-bottom: 35px;
+    padding-top: 30px;
+  }
+}
+
+.main-header-content {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.site-branding {
+  padding-right: 10px;
+}
+
+.site-title {
+  clear: both;
+  color: #111;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0 0 0.2em;
+}
+
+.site-title a,
+.site-title a:hover {
+  color: #111;
+  text-decoration: none;
+}
+
+.site-title a:hover {
+  opacity: 0.8;
+}
+
+.site-description {
+  color: #777;
+  font-size: 95%;
+  margin: 0;
+}
+
+/* ナビ（簡易：980px 以上は横並び） */
+.drawer-hamburger {
+  position: relative;
+  z-index: 1002;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin-left: auto;
+  padding: 0;
+  background: #f4f5f6;
+  border: solid 1px #eee;
+  cursor: pointer;
+  color: #444;
+}
+
+.drawer-hamburger__icon {
+  position: relative;
+  display: flex;
+  width: 22px;
+  height: 16px;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.drawer-hamburger__line {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #111;
+  border-radius: 1px;
+  transform-origin: center;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.drawer-hamburger[aria-expanded="true"] .drawer-hamburger__line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.drawer-hamburger[aria-expanded="true"] .drawer-hamburger__line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.drawer-hamburger[aria-expanded="true"] .drawer-hamburger__line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.drawer-hamburger:focus {
+  outline: none;
+}
+
+.drawer-hamburger:focus-visible {
+  outline: 2px solid #004c71;
+  outline-offset: 2px;
+}
+
+/* 背景オーバーレイ（モバイル専用） */
+.nav-drawer-backdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  visibility: hidden;
+}
+
+.nav-drawer-backdrop.nav-drawer-backdrop--visible {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-navigation {
+    transition: transform 0.2s ease;
+  }
+
+  .nav-drawer-backdrop {
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+}
+
+body.is-nav-open {
+  overflow: hidden;
+}
+
+/* ナビ: スマホは右スライドドロワー */
+.main-navigation {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  z-index: 1001;
+  width: min(20.5rem, 88vw);
+  max-width: 100%;
+  display: block;
+  margin: 0;
+  font-size: 90%;
+  background: #fff;
+  box-shadow: -4px 0 18px rgba(0, 0, 0, 0.12);
+  transform: translate3d(100%, 0, 0);
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.main-navigation.nav--open {
+  transform: translate3d(0, 0, 0);
+  pointer-events: auto;
+}
+
+.main-navigation ul.menu {
+  list-style: none;
+  margin: 0;
+  padding: 3.25rem 0 1.5rem;
+  border: none;
+  min-height: 100%;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.main-navigation ul.menu > li {
+  border-bottom: 1px solid #eee;
+}
+
+.main-navigation ul.menu > li:last-child {
+  border-bottom: none;
+}
+
+.main-navigation a {
+  color: #444;
+  display: block;
+  padding: 0.9rem 1.15rem;
+  text-decoration: none;
+}
+
+.main-navigation a:hover {
+  color: #111;
+  background: #f9f9f9;
+}
+
+@media screen and (min-width: 980px) {
+  .nav-drawer-backdrop {
+    display: none;
+  }
+
+  .drawer-hamburger {
+    display: none;
+  }
+
+  body.is-nav-open {
+    overflow: visible;
+  }
+
+  .main-navigation {
+    position: static;
+    z-index: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: auto;
+    max-width: none;
+    display: block;
+    transform: none;
+    transition: none;
+    box-shadow: none;
+    pointer-events: auto;
+    overflow: visible;
+    will-change: auto;
+  }
+
+  .main-navigation.nav--open,
+  .main-navigation:not(.nav--open) {
+    transform: none;
+  }
+
+  .main-navigation {
+    line-height: 52px;
+  }
+
+  .main-navigation ul.menu {
+    border: none;
+    letter-spacing: -0.4em;
+    padding: 0;
+    min-height: 0;
+  }
+
+  .main-navigation ul.menu > li {
+    display: inline-block;
+    letter-spacing: normal;
+    white-space: nowrap;
+    border-bottom: none;
+  }
+
+  .main-navigation a {
+    padding: 0 15px;
+  }
+
+  .main-navigation a:hover {
+    background: transparent;
+  }
+
+  .main-navigation ul.menu > li:first-child > a {
+    padding-left: 0;
+  }
+
+  .main-navigation ul.menu > li:last-child > a {
+    padding-right: 0;
+  }
+}
+
+/* —— 本文エリア —— */
+.site-content {
+  margin-bottom: 4rem;
+}
+
+.container-content {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 720px;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+@media screen and (min-width: 782px) {
+  .container-content {
+    padding-left: 50px;
+    padding-right: 50px;
+  }
+}
+
+/* 営業時間: 小画面は左右余白を減らして表を横いっぱい近く */
+@media (max-width: 600px) {
+  body.hours-page .container-content {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  body.hours-page .site-content {
+    margin-bottom: 2.25rem;
+  }
+
+  body.hours-page .content-area h1 {
+    font-size: 1.65rem;
+    line-height: 1.4;
+    margin: 0 0 0.6em;
+  }
+
+  body.hours-page .hours__lead {
+    margin: 0 0 0.75em;
+  }
+
+  body.hours-page .hours__lead p {
+    margin: 0 0 0.5em;
+  }
+
+  body.hours-page .hours-schedule {
+    margin: 0 0 1.1em;
+  }
+
+  body.hours-page .hours__note {
+    margin-top: 0.35em;
+  }
+}
+
+.content-area {
+  margin-bottom: 3rem;
+}
+
+/* ページ見出し（固定ページの h1 相当） */
+.content-area h1 {
+  clear: both;
+  color: #111;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0 0 1em;
+}
+
+.content-area section:first-child > h1 {
+  margin-top: 0;
+}
+
+/* お問い合わせフォーム */
+.inquiry-form p {
+  margin: 0 0 1.2em;
+}
+
+.inquiry-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4em;
+  color: #111;
+}
+
+.inquiry-form input[type="text"],
+.inquiry-form input[type="email"],
+.inquiry-form textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: solid 1px #e6e6e6;
+  color: #444;
+  margin-top: 0;
+  padding: 0.6em 0.7em;
+  font-family: inherit;
+  font-size: 100%;
+  line-height: 1.6;
+}
+
+.inquiry-form input:focus,
+.inquiry-form textarea:focus {
+  color: #444;
+  outline: 2px solid #004c71;
+  outline-offset: 1px;
+}
+
+.inquiry-form textarea {
+  min-height: 8em;
+  max-width: 720px;
+  vertical-align: top;
+}
+
+.inquiry__hint {
+  font-size: 90%;
+  color: #666;
+  margin: 0 0 1.2em;
+  line-height: 1.65;
+}
+
+.inquiry__submit {
+  background-color: #333;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 90%;
+  line-height: 1;
+  padding: 1.1em 1.5em;
+  text-transform: none;
+  font-family: inherit;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.inquiry__submit:hover,
+.inquiry__submit:focus {
+  background-color: #555;
+}
+
+.n-form-hidden {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.inquiry__req {
+  font-size: 0.88em;
+  font-weight: 500;
+  color: #666;
+}
+
+h2 {
+  clear: both;
+  color: #111;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 3em 0 1.5rem;
+}
+
+.content-area section:first-child h2 {
+  margin-top: 0;
+}
+
+.content-area > h1:first-child {
+  margin-top: 0;
+}
+
+p {
+  margin: 0 0 1.8em;
+}
+
+.lead {
+  margin: 0 0 1.5em;
+}
+
+/* 料金メニュー（#menu 内のみ。公式の追加CSS「.menu .item」に準拠） */
+#menu .menu-block {
+  margin-bottom: 2.2em;
+}
+
+#menu ul.menu {
+  list-style: none;
+  margin: 0 0 1.8em;
+  padding: 0;
+}
+
+#menu .menu .item {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+#menu .menu .item::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  z-index: 0;
+  width: 100%;
+  border-bottom: dotted 2px #aaa;
+}
+
+#menu .menu .item .name,
+#menu .menu .item .price {
+  display: inline-block;
+  background-color: #fff;
+  position: relative;
+  z-index: 1;
+}
+
+#menu .menu .item .name {
+  padding-right: 0.35em;
+}
+
+#menu .menu .item .price {
+  padding-left: 0.35em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #444;
+}
+
+.menu__note {
+  font-size: 90%;
+  color: #666;
+  margin: 0 0 0;
+}
+
+/* テーブル（追加CSS .kaisha に合わせた営業時間用） */
+table.kaisha {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+  margin: 0 0 1.8em;
+}
+
+.kaisha th,
+.kaisha td {
+  border: 1px solid #ccc;
+  padding: 1em 1.2em;
+}
+
+.kaisha th {
+  font-weight: 700;
+  background-color: #dedede;
+  text-align: left;
+  width: 8rem;
+  vertical-align: top;
+}
+
+.hours__note {
+  font-size: 1rem;
+  color: #666;
+  margin: 0.5em 0 0;
+}
+
+.hours__lead {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: #333;
+  margin: 0 0 1.2em;
+}
+
+.hours__lead p {
+  margin: 0 0 0.65em;
+}
+
+.hours__lead p:last-child {
+  margin-bottom: 0;
+}
+
+.hours-schedule {
+  max-width: 100%;
+  margin: 0 0 1.8em;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+}
+
+/* 週間表: 公式 time ページのシンプルな罫表に（https://oyakoko-onigiri.com/time/ ） */
+table.kaisha.kaisha--week {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 1em;
+  margin: 0;
+  table-layout: fixed;
+  border: 1px solid #c8c8c8;
+  border-collapse: collapse;
+}
+
+.kaisha--week__colTime {
+  width: 1%;
+  min-width: 7em;
+}
+
+.kaisha--week__colDay {
+  min-width: 0;
+  width: 72%;
+}
+
+.kaisha--week th,
+.kaisha--week td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.7em 0.2em;
+  width: auto;
+  border: 1px solid #c8c8c8;
+  box-sizing: border-box;
+  word-break: keep-all;
+  background: #fff;
+}
+
+.kaisha--week thead th {
+  background-color: #f4f5f6;
+  font-weight: 600;
+  color: #222;
+  padding: 0.65em 0.3em;
+  font-size: 1em;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.kaisha--week thead th:not(.kaisha--week__corner) {
+  font-size: 0.95em;
+}
+
+.kaisha--week thead th.kaisha--week__corner {
+  line-height: 1.35;
+  white-space: nowrap;
+  word-break: keep-all;
+  padding: 0.65em 0.4em;
+}
+
+/* 見出しの土・日の文字色（7＝土、8＝日） */
+.kaisha--week thead th:nth-child(7) {
+  color: #3db2da;
+}
+
+.kaisha--week thead th:nth-child(8) {
+  color: #e66a6a;
+}
+
+.kaisha--week tbody th.kaisha--week__time {
+  text-align: center;
+  background-color: #fff;
+  font-size: 0.95em;
+  white-space: normal;
+  font-weight: 500;
+  padding: 0.6em 0.3em;
+  line-height: 1.4;
+}
+
+.kaisha--week__timeFrom,
+.kaisha--week__timeTo {
+  display: block;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.kaisha--week tbody td {
+  padding: 0.7em 0.2em;
+}
+
+.kaisha--week__on {
+  color: #222;
+  font-weight: 500;
+  font-size: 1.05em;
+}
+
+.kaisha--week__dash {
+  color: #999;
+  font-weight: 500;
+}
+
+/* 小画面: 営業時間ページのみ詰めすぎにしない（公式同様、読みやすさ優先） */
+@media (max-width: 600px) {
+  .kaisha--week thead th:not(.kaisha--week__corner) {
+    font-size: 0.9em;
+  }
+
+  .kaisha--week th,
+  .kaisha--week td {
+    padding: 0.55em 0.1em;
+  }
+
+  .kaisha--week tbody th.kaisha--week__time,
+  body.hours-page .kaisha--week tbody th.kaisha--week__time {
+    padding: 0.5em 0.2em;
+    font-size: 0.88em;
+  }
+}
+
+@media (min-width: 601px) {
+  .kaisha--week th,
+  .kaisha--week td {
+    padding: 0.75em 0.3em;
+  }
+
+  .kaisha--week thead th:not(.kaisha--week__corner) {
+    padding: 0.7em 0.3em;
+  }
+
+  .kaisha--week thead th.kaisha--week__corner {
+    padding: 0.7em 0.4em;
+  }
+}
+
+@media (min-width: 782px) {
+  .kaisha--week th,
+  .kaisha--week td {
+    padding: 0.85em 0.45em;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  table.kaisha:not(.kaisha--week),
+  table.kaisha:not(.kaisha--week) tr,
+  table.kaisha:not(.kaisha--week) td,
+  table.kaisha:not(.kaisha--week) th {
+    display: block;
+  }
+  table.kaisha:not(.kaisha--week) th {
+    width: auto;
+  }
+  table.kaisha:not(.kaisha--week) tr {
+    margin-bottom: 0.5em;
+  }
+}
+
+/* 地図 */
+.map-wrap {
+  border: 1px solid #eee;
+  max-width: 100%;
+  margin: 1em 0 0;
+}
+
+.map-wrap iframe {
+  display: block;
+  width: 100%;
+  height: 220px;
+  border: 0;
+  vertical-align: middle;
+}
+
+/* 汎用カード風（テーマに無い箇所：最小限） */
+.info-plain {
+  margin: 0 0 1.8em;
+  font-size: 1em;
+  line-height: 1.8;
+}
+
+/* お支払い方法バナー */
+.payment-methods {
+  margin: 0 0 1.2em;
+  max-width: 100%;
+}
+
+.payment-methods__img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border: 1px solid #eee;
+}
+
+.payment-methods__caption {
+  margin: 0.75em 0 0;
+  font-size: 90%;
+  color: #666;
+  text-align: right;
+}
+
+/* フッター */
+.site-bottom {
+  border-top: solid 1px #eee;
+  padding-bottom: 2rem;
+  padding-top: 3rem;
+}
+
+.site-bottom p {
+  margin: 0;
+  text-align: center;
+  color: #888;
+  font-size: 80%;
+}

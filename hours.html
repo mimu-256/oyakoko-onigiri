@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>営業時間 - 親孝行おにぎり</title>
+    <meta name="description" content="親孝行おにぎりの営業時間・定休日。臨時休業はSNS等で告知します。" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="hours-page">
+    <a class="skip" href="#main">コンテンツへスキップ</a>
+    <header class="site-header">
+      <div class="top-bar">
+        <div class="top-bar-content">
+          <ul class="top-bar-main">
+            <li class="top-bar-main-phone"><a href="tel:0485119141">048-511-9141</a></li>
+            <li class="top-bar-main-contact"><a href="faq.html">お問い合わせ</a></li>
+            <li class="top-bar-main-access"><a href="access.html">アクセス</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="main-header">
+        <div class="main-header-content">
+          <div class="site-branding">
+            <p class="site-title"><a href="index.html">親孝行おにぎり</a></p>
+            <p class="site-description">鴻巣市のおにぎり専門店</p>
+          </div>
+          <button type="button" class="drawer-hamburger" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="ナビゲーションを開く">
+            <span class="drawer-hamburger__icon" aria-hidden="true">
+              <span class="drawer-hamburger__line"></span>
+              <span class="drawer-hamburger__line"></span>
+              <span class="drawer-hamburger__line"></span>
+            </span>
+          </button>
+          <nav class="main-navigation" id="site-nav" aria-label="メイン">
+            <ul class="menu">
+              <li><a href="index.html">メニュー</a></li>
+              <li><a href="hours.html" aria-current="page">営業時間</a></li>
+              <li><a href="access.html">アクセス</a></li>
+              <li><a href="payment.html">お支払い方法</a></li>
+              <li><a href="reserve.html">ご予約</a></li>
+              <li><a href="faq.html">お問い合わせ</a></li>
+              <li><a href="sns.html">各種SNS</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+    <div class="nav-drawer-backdrop" id="nav-backdrop" aria-hidden="true"></div>
+    <div class="site-content">
+      <div class="container-content">
+        <main id="main" class="content-area">
+          <h1>営業時間</h1>
+          <div class="hours__lead">
+            <p>※水曜は定休日です。</p>
+            <p>※土日は朝 7:00より営業しております。</p>
+            <p>※大口注文やお弁当をご希望の場合、できる限り柔軟に対応しておりますので一度ご相談くださいませ。</p>
+          </div>
+          <div class="hours-schedule" tabindex="0" role="region" aria-label="週間営業表">
+            <table class="kaisha kaisha--week" aria-label="営業時間（曜日別）">
+              <colgroup>
+                <col class="kaisha--week__colTime" />
+                <col class="kaisha--week__colDay" span="7" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col" class="kaisha--week__corner">営業時間</th>
+                  <th scope="col">月</th>
+                  <th scope="col">火</th>
+                  <th scope="col">水</th>
+                  <th scope="col">木</th>
+                  <th scope="col">金</th>
+                  <th scope="col">土</th>
+                  <th scope="col">日</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row" class="kaisha--week__time">
+                    <span class="kaisha--week__timeFrom">7:00〜</span>
+                    <span class="kaisha--week__timeTo">18:00</span>
+                  </th>
+                  <td><span class="kaisha--week__dash" aria-label="営業なし">–</span></td>
+                  <td><span class="kaisha--week__dash" aria-label="営業なし">–</span></td>
+                  <td><span class="kaisha--week__dash" aria-label="営業なし">–</span></td>
+                  <td><span class="kaisha--week__dash" aria-label="営業なし">–</span></td>
+                  <td><span class="kaisha--week__dash" aria-label="営業なし">–</span></td>
+                  <td><span class="kaisha--week__on" aria-label="営業">◯</span></td>
+                  <td><span class="kaisha--week__on" aria-label="営業">◯</span></td>
+                </tr>
+                <tr>
+                  <th scope="row" class="kaisha--week__time">
+                    <span class="kaisha--week__timeFrom">10:00〜</span>
+                    <span class="kaisha--week__timeTo">18:00</span>
+                  </th>
+                  <td><span class="kaisha--week__on" aria-label="営業">◯</span></td>
+                  <td><span class="kaisha--week__on" aria-label="営業">◯</span></td>
+                  <td><span class="kaisha--week__dash" aria-label="定休日">–</span></td>
+                  <td><span class="kaisha--week__on" aria-label="営業">◯</span></td>
+                  <td><span class="kaisha--week__on" aria-label="営業">◯</span></td>
+                  <td><span class="kaisha--week__dash" aria-label="営業なし">–</span></td>
+                  <td><span class="kaisha--week__dash" aria-label="営業なし">–</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="hours__note">※臨時休業・短縮営業は公式Instagram等で告知する場合がございます。お出かけ前にご確認ください。</p>
+        </main>
+      </div>
+    </div>
+    <footer class="site-bottom">
+      <div class="site-bottom-content">
+        <p>© 2026 親孝行おにぎり</p>
+      </div>
+    </footer>
+    <script src="js/main.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ご予約 - 親孝行おにぎり</title>
+    <meta
+      name="description"
+      content="おにぎりのWeb予約。品目と数量を選び、来店払いでお受け取り。お会計は店頭にてお願いします。"
+    />
+    <link
+      rel="icon"
+      href="https://oyakoko-onigiri.com/wp-content/uploads/2023/06/cropped-8b842f4ed7df292c5417165a1164dcbb-32x32.png"
+      sizes="32x32"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/reserve.css" />
+  </head>
+  <body class="reserve-body">
+    <a class="skip" href="#main">コンテンツへスキップ</a>
+    <header class="site-header">
+      <div class="top-bar">
+        <div class="top-bar-content">
+          <ul class="top-bar-main">
+            <li class="top-bar-main-phone"><a href="tel:0485119141">048-511-9141</a></li>
+            <li class="top-bar-main-contact"><a href="faq.html">お問い合わせ</a></li>
+            <li class="top-bar-main-access"><a href="access.html">アクセス</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="main-header">
+        <div class="main-header-content">
+          <div class="site-branding">
+            <p class="site-title"><a href="index.html">親孝行おにぎり</a></p>
+            <p class="site-description">鴻巣市のおにぎり専門店</p>
+          </div>
+          <button
+            type="button"
+            class="drawer-hamburger"
+            id="nav-toggle"
+            aria-expanded="false"
+            aria-controls="site-nav"
+            aria-label="ナビゲーションを開く"
+          >
+            <span class="drawer-hamburger__icon" aria-hidden="true">
+              <span class="drawer-hamburger__line"></span>
+              <span class="drawer-hamburger__line"></span>
+              <span class="drawer-hamburger__line"></span>
+            </span>
+          </button>
+          <nav class="main-navigation" id="site-nav" aria-label="メイン">
+            <ul class="menu">
+              <li><a href="index.html">メニュー</a></li>
+              <li><a href="hours.html">営業時間</a></li>
+              <li><a href="access.html">アクセス</a></li>
+              <li><a href="payment.html">お支払い方法</a></li>
+              <li><a href="reserve.html" aria-current="page">ご予約</a></li>
+              <li><a href="faq.html">お問い合わせ</a></li>
+              <li><a href="sns.html">各種SNS</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+    <div class="nav-drawer-backdrop" id="nav-backdrop" aria-hidden="true"></div>
+
+    <div class="site-content">
+      <div class="container-content">
+        <main id="main" class="content-area">
+          <h1>ご予約</h1>
+          <p class="reserve-lead">
+            品目の<strong>数量</strong>を選び、<strong>カート</strong>で内容を確認のうえ、受取希望日時を送信してください。お会計は<strong>来店時に店頭</strong>でお願いします。
+          </p>
+          <div id="reserve-menu-root"></div>
+        </main>
+      </div>
+    </div>
+
+    <div class="reserve-fab" id="reserve-fab">
+      <button
+        type="button"
+        class="reserve-fab__btn"
+        id="reserve-fab-open"
+        aria-expanded="false"
+        aria-controls="reserve-sheet"
+      >
+        <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+        <span class="reserve-fab__count" id="fab-count">0</span>
+        <span class="reserve-fab__total" id="fab-total">¥0</span>
+        <span class="reserve-fab__label">カートを見る</span>
+      </button>
+    </div>
+
+    <div class="reserve-sheet-backdrop" id="sheet-backdrop" aria-hidden="true"></div>
+    <div class="reserve-sheet" id="reserve-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="sheet-title">
+      <div class="reserve-sheet__handle" aria-hidden="true"></div>
+      <button type="button" class="reserve-sheet__close" id="sheet-close" aria-label="カートを閉じる">×</button>
+      <h2 id="sheet-title">カート</h2>
+      <p class="reserve-empty" id="cart-empty">カートに商品がありません。メニューから数量をお選びください。</p>
+      <h3 class="reserve-cart__heading" id="cart-heading" hidden>注文内容の確認</h3>
+      <ul
+        class="reserve-cart-lines"
+        id="cart-lines"
+        aria-label="注文商品一覧"
+        aria-live="polite"
+      ></ul>
+      <div class="reserve-sheet__subtotal" id="cart-subtotal-wrap" hidden>
+        <span>小計</span>
+        <span id="cart-subtotal">¥0</span>
+      </div>
+      <form
+        class="reserve-form"
+        id="reserve-form"
+        name="reservation"
+        method="post"
+        data-netlify="true"
+        data-netlify-honeypot="bot-field"
+        action="reserve.html"
+      >
+        <input type="hidden" name="form-name" value="reservation" />
+        <p class="n-form-hidden">
+          <label>この欄は空: <input name="bot-field" type="text" autocomplete="off" /></label>
+        </p>
+        <input type="hidden" name="order_lines" id="order_lines" value="" />
+        <h3 class="reserve-form__h">受取・お客様情報</h3>
+        <p>
+          <label for="r-name">お名前 <span class="req" aria-label="必須">＊</span></label>
+          <input type="text" name="customer_name" id="r-name" required autocomplete="name" />
+        </p>
+        <p>
+          <label for="r-tel">お電話番号 <span class="req" aria-label="必須">＊</span></label>
+          <input type="tel" name="customer_tel" id="r-tel" required autocomplete="tel" inputmode="tel" />
+        </p>
+        <p>
+          <label for="r-date">受取希望日 <span class="req" aria-label="必須">＊</span></label>
+          <input type="date" name="pickup_date" id="r-date" required />
+          <span class="reserve-date-hint">本日から1ヶ月以内でお選びください。</span>
+        </p>
+        <fieldset class="reserve-form__fieldset">
+          <legend>受取希望時間 <span class="req" aria-label="必須">＊</span></legend>
+          <div class="reserve-time-row" role="group" aria-label="受取希望の時刻（5分刻み）">
+            <div class="reserve-time__field">
+              <label for="r-hour">時</label>
+              <select name="pickup_hour" id="r-hour" required autocomplete="off">
+                <option value="">選択</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+              </select>
+            </div>
+            <div class="reserve-time__field">
+              <label for="r-min">分</label>
+              <select name="pickup_min" id="r-min" required autocomplete="off">
+                <option value="">選択</option>
+                <option value="00">00</option>
+                <option value="05">05</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+                <option value="25">25</option>
+                <option value="30">30</option>
+                <option value="35">35</option>
+                <option value="40">40</option>
+                <option value="45">45</option>
+                <option value="50">50</option>
+                <option value="55">55</option>
+              </select>
+            </div>
+          </div>
+          <p class="reserve-time-hint">5分刻みで時刻を指定できます。営業時間外のご希望は備考欄にご記入ください。</p>
+        </fieldset>
+        <p>
+          <label for="r-note">ご要望・メモ（任意）</label>
+          <textarea name="note" id="r-note" rows="3" placeholder="アレルギー・到着目安 など"></textarea>
+        </p>
+        <p class="reserve-form__note">
+          内容は目安です。在庫・混雑によりご希望に沿えない場合、担当よりお電話する場合がございます。送信前にカートの品目数をご確認ください。
+        </p>
+        <button type="submit" class="reserve-form__submit" id="reserve-submit" disabled>予約内容を送信</button>
+      </form>
+    </div>
+
+    <footer class="site-bottom">
+      <div class="site-bottom-content">
+        <p>© 2026 親孝行おにぎり</p>
+      </div>
+    </footer>
+    <script src="js/main.js" defer></script>
+    <script src="js/reserve.js" defer></script>
+  </body>
+</html>
