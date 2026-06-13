@@ -828,19 +828,19 @@ table.kaisha.kaisha--week {
   max-width: 100%;
   font-size: 1em;
   margin: 0;
-  table-layout: fixed;
+  table-layout: auto;
   border: 1px solid #c8c8c8;
   border-collapse: collapse;
 }
 
 .kaisha--week__colTime {
-  width: 1%;
-  min-width: 7em;
+  width: auto;
+  min-width: 4.75rem;
 }
 
 .kaisha--week__colDay {
-  min-width: 0;
-  width: 72%;
+  min-width: 1.65rem;
+  width: auto;
 }
 
 .kaisha--week th,
@@ -872,8 +872,9 @@ table.kaisha.kaisha--week {
 .kaisha--week thead th.kaisha--week__corner {
   line-height: 1.35;
   white-space: nowrap;
-  word-break: keep-all;
+  word-break: normal;
   padding: 0.65em 0.4em;
+  min-width: 4.75rem;
 }
 
 /* 見出しの土・日の文字色（7＝土、8＝日） */
@@ -890,16 +891,20 @@ table.kaisha.kaisha--week {
   background-color: #fff;
   font-size: 0.95em;
   white-space: normal;
+  word-break: normal;
   font-weight: 500;
-  padding: 0.6em 0.3em;
+  padding: 0.6em 0.35em;
   line-height: 1.4;
+  min-width: 4.75rem;
+  width: 4.75rem;
 }
 
 .kaisha--week__timeFrom,
 .kaisha--week__timeTo {
   display: block;
-  line-height: 1.4;
+  line-height: 1.35;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .kaisha--week tbody td {
@@ -917,21 +922,35 @@ table.kaisha.kaisha--week {
   font-weight: 500;
 }
 
-/* 小画面: 営業時間ページのみ詰めすぎにしない（公式同様、読みやすさ優先） */
+/* 小画面: 時刻列の潰れ防止・必要なら横スクロール（.hours-schedule） */
 @media (max-width: 600px) {
+  table.kaisha.kaisha--week {
+    min-width: 19.5rem;
+  }
+
   .kaisha--week thead th:not(.kaisha--week__corner) {
     font-size: 0.9em;
+    word-break: normal;
+    min-width: 1.45rem;
   }
 
   .kaisha--week th,
   .kaisha--week td {
-    padding: 0.55em 0.1em;
+    padding: 0.55em 0.15em;
+    word-break: normal;
   }
 
   .kaisha--week tbody th.kaisha--week__time,
   body.hours-page .kaisha--week tbody th.kaisha--week__time {
-    padding: 0.5em 0.2em;
+    padding: 0.5em 0.25em;
     font-size: 0.88em;
+    min-width: 4.35rem;
+    width: 4.35rem;
+  }
+
+  .kaisha--week thead th.kaisha--week__corner {
+    min-width: 4.35rem;
+    width: 4.35rem;
   }
 }
 

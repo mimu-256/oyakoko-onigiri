@@ -69,7 +69,7 @@
               <li><a href="hours.html">営業時間</a></li>
               <li><a href="access.html">アクセス</a></li>
               <li><a href="payment.html">お支払い方法</a></li>
-              <li><a href="reserve.html">ご予約</a></li>
+              <!-- <li><a href="reserve.html">ご予約</a></li> -->
               <li><a href="faq.html" aria-current="page">お問い合わせ</a></li>
               <li><a href="sns.html">各種SNS</a></li>
             </ul>
@@ -84,11 +84,38 @@
         <main id="main" class="content-area">
           <h1>お問い合わせ</h1>
           <p class="inquiry__hint">お急ぎの方は、お電話 <a href="tel:0485119141">048-511-9141</a> もご利用ください。</p>
+          <div class="sns-links info-plain">
+            <div class="sns-links__col">
+              <a
+                href="https://www.instagram.com/oyakoko_onigiri/"
+                class="sns-links__link sns-links__link--image"
+                rel="noopener noreferrer"
+                target="_blank"
+                aria-label="Instagram @oyakoko_onigiri（新しいタブで開く）"
+              >
+                <img src="images/Instagram_icon.png" alt="" width="56" height="56" class="sns-links__icon" decoding="async" />
+              </a>
+              <p class="sns-links__item-cap"><span class="visually-hidden">Instagram </span>@oyakoko_onigiri</p>
+            </div>
+            <div class="sns-links__col">
+              <a
+                href="https://page.line.me/223mxrib?oat_content=url&amp;openQrModal=true"
+                class="sns-links__link sns-links__link--image"
+                rel="noopener noreferrer"
+                target="_blank"
+                aria-label="親孝行おにぎり 公式LINE（新しいタブで開く）"
+              >
+                <img src="images/LINE_logo.svg.png" alt="" width="56" height="56" class="sns-links__icon" decoding="async" />
+              </a>
+              <p class="sns-links__item-cap"><span class="visually-hidden">LINE </span>公式アカウント</p>
+            </div>
+          </div>
 
           <!--
+            送信フォーム: 一旦コメントアウト（あとで有効化）
             本番: Netlify では data-netlify="true" のフォームをビルド時に検出。別ホストでは Formspree / FormSubmit 等の action URL に差し替え、
             または WordPress へ移行のうえ Contact Form 7 を使用してください（公式: https://oyakoko-onigiri.com/faq/）
-          -->
+
           <form
             class="inquiry-form"
             name="inquiry"
@@ -128,6 +155,7 @@
               <button class="inquiry__submit" type="submit">送信</button>
             </p>
           </form>
+          -->
         </main>
       </div>
     </div>
