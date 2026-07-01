@@ -4,6 +4,11 @@
 # 作業メモ（ローカルのみ）
 作業メモ*.txt
 
+# Firebase（ローカルキャッシュ）
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
 .DS_Store
 Thumbs.db
 *.log
