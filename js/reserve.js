@@ -29,7 +29,7 @@
     {
       label: "300円",
       items: [
-        { id: "m010", name: "イカの塩辛", price: 300 },
+        // { id: "m010", name: "イカの塩辛", price: 300 },
         { id: "m011", name: "明太子", price: 300 },
       ],
     },
