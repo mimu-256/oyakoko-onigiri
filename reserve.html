@@ -8,11 +8,7 @@
       name="description"
       content="おにぎりのWeb予約。品目と数量を選び、来店払いでお受け取り。お会計は店頭にてお願いします。"
     />
-    <link
-      rel="icon"
-      href="https://oyakoko-onigiri.com/wp-content/uploads/2023/06/cropped-8b842f4ed7df292c5417165a1164dcbb-32x32.png"
-      sizes="32x32"
-    />
+    <link rel="icon" href="images/logo.jpg" type="image/jpeg" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
@@ -72,6 +68,11 @@
       <div class="container-content">
         <main id="main" class="content-area">
           <h1>ご予約</h1>
+          <!-- ーーーーーーーーーーTODO 削除 -->
+          <p>
+            <button type="button" id="liff-test-btn" disabled>LIFFテスト送信</button>
+            <span id="liff-status" aria-label="polite"></span>
+          </p>
           <p class="reserve-lead">
             品目の<strong>数量</strong>を選び、<strong>カート</strong>で内容を確認のうえ、受取希望日時を送信してください。お会計は<strong>来店時に店頭</strong>でお願いします。
           </p>
@@ -132,8 +133,10 @@
           <input type="text" name="customer_name" id="r-name" required autocomplete="name" />
         </p>
         <p>
-          <label for="r-tel">お電話番号 <span class="req" aria-label="必須">＊</span></label>
-          <input type="tel" name="customer_tel" id="r-tel" required autocomplete="tel" inputmode="tel" />
+          <label for="r-tel">お電話番号 (任意)
+             <!-- <span class="req" aria-label="必須">＊</span> -->
+            </label>
+          <input type="tel" name="customer_tel" id="r-tel"  autocomplete="tel" inputmode="tel" />
         </p>
         <p>
           <label for="r-date">受取希望日 <span class="req" aria-label="必須">＊</span></label>
@@ -158,7 +161,7 @@
                 <option value="15">15</option>
                 <option value="16">16</option>
                 <option value="17">17</option>
-                <option value="18">18</option>
+                <!-- <option value="18">18</option> -->
               </select>
             </div>
             <div class="reserve-time__field">
@@ -198,7 +201,11 @@
         <p>© 2026 親孝行おにぎり</p>
       </div>
     </footer>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="js/main.js" defer></script>
     <script src="js/reserve.js" defer></script>
+    <script src="js/liff.js" defer></script>
+
+
   </body>
 </html>

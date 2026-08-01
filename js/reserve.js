@@ -1,11 +1,11 @@
 (function () {
-  var DUMMY = "images/dummy.png";
+  var DUMMY = "images/logo.jpg";
 
   var GROUPS = [
     {
       label: "期間・おすすめ",
       items: [
-        { id: "m001", name: "小松菜梅しらす（7月限定）", price: 330 },
+        { id: "m001", name: "高菜明太（8月限定）", price: 300 },
         { id: "m002", name: "うなぎ", price: 420 },
       ],
     },
@@ -40,6 +40,7 @@
         { id: "m013", name: "梅かつお", price: 280 },
         { id: "m014", name: "おかか", price: 280 },
         { id: "m015", name: "高菜", price: 280 },
+        { id: "m016", name: "こんぶ", price: 280 },
       ],
     },
   ];
@@ -361,14 +362,49 @@
     return y + "-" + (m < 10 ? "0" : "") + m + "-" + (day < 10 ? "0" : "") + day;
   }
 
+
+  // 日付
   var dateIn = document.getElementById("r-date");
-  if (dateIn) {
+  // 時間
+  var hourIn = document.getElementById("r-hour");
+  var minIn = document.getElementById("r-min");
+
+  if (dateIn && hourIn && minIn) {
+    var date = new Date();
     var start = new Date();
     start.setHours(0, 0, 0, 0);
-    var end = new Date(start);
+    var end = new Date(date);
     end.setMonth(end.getMonth() + 1);
     dateIn.min = toDateInputString(start);
     dateIn.max = toDateInputString(end);
+
+
+    // var t = new Date();
+    // 1時間後
+    date.setHours(date.getHours() + 1);
+
+    var hour = date.getHours();
+    var min = date.getMinutes();
+    // TODO : 5分刻みに切り上げ
+    min =  Math.ceil(min / 5 ) * 5;
+    if (min >= 60) {
+      min = 0;
+      hour += 1;
+    }
+
+    // 営業時間ない
+    if(hour >= 18) {
+      hour = 12;
+      min = 0;
+      date.setDate(date.getDate() + 1);
+    } else if (hour < 7) {
+      hour = 10;
+      min = 0;
+    }
+
+    hourIn.value = String(hour);
+    minIn.value = minIn.value = (min < 10 ? "0" : "") + min;
+    // 初期値を本日に設定
+    dateIn.value = toDateInputString(date);
   }
 })();
-
