@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="reserve-page">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <title>ご予約 - 親孝行おにぎり</title>
     <meta
       name="description"
@@ -23,15 +23,15 @@
         <div class="top-bar-content">
           <ul class="top-bar-main">
             <li class="top-bar-main-phone"><a href="tel:0485119141">048-511-9141</a></li>
-            <li class="top-bar-main-contact"><a href="faq.html">お問い合わせ</a></li>
-            <li class="top-bar-main-access"><a href="access.html">アクセス</a></li>
+            <li class="top-bar-main-contact"><a href="/faq">お問い合わせ</a></li>
+            <li class="top-bar-main-access"><a href="/access">アクセス</a></li>
           </ul>
         </div>
       </div>
       <div class="main-header">
         <div class="main-header-content">
           <div class="site-branding">
-            <p class="site-title"><a href="index.html">親孝行おにぎり</a></p>
+            <p class="site-title"><a href="/">親孝行おにぎり</a></p>
             <p class="site-description">鴻巣市のおにぎり専門店</p>
           </div>
           <button
@@ -50,13 +50,13 @@
           </button>
           <nav class="main-navigation" id="site-nav" aria-label="メイン">
             <ul class="menu">
-              <li><a href="index.html">メニュー</a></li>
-              <li><a href="hours.html">営業時間</a></li>
-              <li><a href="access.html">アクセス</a></li>
-              <li><a href="payment.html">お支払い方法</a></li>
-              <!-- <li><a href="reserve.html" aria-current="page">ご予約</a></li> -->
-              <li><a href="faq.html">お問い合わせ</a></li>
-              <li><a href="sns.html">各種SNS</a></li>
+              <li><a href="/">メニュー</a></li>
+              <li><a href="/hours">営業時間</a></li>
+              <li><a href="/access">アクセス</a></li>
+              <li><a href="/payment">お支払い方法</a></li>
+              <!-- <li><a href="/reserve" aria-current="page">ご予約</a></li> -->
+              <li><a href="/faq">お問い合わせ</a></li>
+              <li><a href="/sns">各種SNS</a></li>
             </ul>
           </nav>
         </div>
@@ -69,13 +69,17 @@
         <main id="main" class="content-area">
           <h1>ご予約</h1>
           <!-- ーーーーーーーーーーTODO 削除 -->
-          <p>
+          <!-- <p>
             <button type="button" id="liff-test-btn" disabled>LIFFテスト送信</button>
             <span id="liff-status" aria-label="polite"></span>
-          </p>
+          </p> -->
           <p class="reserve-lead">
             品目の<strong>数量</strong>を選び、<strong>カート</strong>で内容を確認のうえ、受取希望日時を送信してください。お会計は<strong>来店時に店頭</strong>でお願いします。
           </p>
+          <p class="reserve-alt-link">
+            <a href="/reserve-bulk">大口注文（配送）をご希望の方はこちら</a>
+          </p>
+          <div id="reserve-bento-root"></div>
           <div id="reserve-menu-root"></div>
         </main>
       </div>
@@ -96,11 +100,69 @@
       </button>
     </div>
 
+    <div class="bento-modal-backdrop" id="bento-modal-backdrop" aria-hidden="true"></div>
+    <div
+      class="bento-modal"
+      id="bento-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bento-modal-title"
+      aria-hidden="true"
+    >
+      <div class="bento-modal__panel">
+        <button type="button" class="bento-modal__close" id="bento-modal-close" aria-label="閉じる">×</button>
+        <div class="bento-modal__body">
+          <h2 class="bento-modal__title" id="bento-modal-title">お弁当のおにぎりを選ぶ</h2>
+          <p class="bento-modal__lead">鮭（固定）＋ お好きなおにぎり1個</p>
+          <div class="bento-modal__fixed">
+            <span class="bento-modal__fixed-label">固定</span>
+            <span class="bento-modal__fixed-name" id="bento-fixed-name"></span>
+            <span class="bento-modal__fixed-price" id="bento-fixed-price"></span>
+          </div>
+          <p class="bento-modal__pick-label">もう1個を選んでください</p>
+          <div class="bento-modal__choices" id="bento-choices" role="radiogroup" aria-label="お好きなおにぎり"></div>
+        </div>
+        <div class="bento-modal__footer">
+          <div class="bento-modal__summary">
+            <div class="bento-modal__qty-row">
+              <span class="bento-modal__qty-label">数量</span>
+              <div class="reserve-stepper bento-modal__stepper" role="group" aria-label="追加する箱数">
+                <button
+                  type="button"
+                  class="reserve-stepper__btn reserve-stepper__btn--sm"
+                  id="bento-modal-qty-minus"
+                  aria-label="1箱減らす"
+                >
+                  −
+                </button>
+                <span class="bento-modal__qty" id="bento-modal-qty">1</span>
+                <button
+                  type="button"
+                  class="reserve-stepper__btn reserve-stepper__btn--sm"
+                  id="bento-modal-qty-plus"
+                  aria-label="1箱足す"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <p class="bento-modal__total" id="bento-modal-total" aria-live="polite">合計 ¥980</p>
+          </div>
+          <button type="button" class="bento-modal__confirm" id="bento-modal-confirm" disabled>カートに追加</button>
+        </div>
+      </div>
+    </div>
+
     <div class="reserve-sheet-backdrop" id="sheet-backdrop" aria-hidden="true"></div>
     <div class="reserve-sheet" id="reserve-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="sheet-title">
       <div class="reserve-sheet__handle" aria-hidden="true"></div>
       <button type="button" class="reserve-sheet__close" id="sheet-close" aria-label="カートを閉じる">×</button>
-      <h2 id="sheet-title">カート</h2>
+      <div class="reserve-sheet__head">
+        <h2 id="sheet-title">カート内の商品</h2>
+        <button type="button" class="reserve-cart-clear" id="cart-clear" hidden aria-label="カート内の商品をすべて削除">
+          <i class="fa fa-trash-o" aria-hidden="true"></i> 全て削除
+        </button>
+      </div>
       <p class="reserve-empty" id="cart-empty">カートに商品がありません。メニューから数量をお選びください。</p>
       <h3 class="reserve-cart__heading" id="cart-heading" hidden>注文内容の確認</h3>
       <ul
@@ -110,7 +172,7 @@
         aria-live="polite"
       ></ul>
       <div class="reserve-sheet__subtotal" id="cart-subtotal-wrap" hidden>
-        <span>小計</span>
+        <span>小計<span class="reserve-sheet__subtotal-count" id="cart-subtotal-count"></span></span>
         <span id="cart-subtotal">¥0</span>
       </div>
       <form
@@ -120,7 +182,7 @@
         method="post"
         data-netlify="true"
         data-netlify-honeypot="bot-field"
-        action="reserve.html"
+        action="/reserve"
       >
         <input type="hidden" name="form-name" value="reservation" />
         <p class="n-form-hidden">
@@ -140,8 +202,8 @@
         </p>
         <p>
           <label for="r-date">受取希望日 <span class="req" aria-label="必須">＊</span></label>
-          <input type="date" name="pickup_date" id="r-date" required />
-          <span class="reserve-date-hint">本日から1ヶ月以内でお選びください。</span>
+          <select name="pickup_date" id="r-date" required aria-describedby="r-date-hint"></select>
+          <span class="reserve-date-hint" id="r-date-hint">本日から1ヶ月以内でお選びください。水曜日は定休日のため選択肢に表示されません。</span>
         </p>
         <fieldset class="reserve-form__fieldset">
           <legend>受取希望時間 <span class="req" aria-label="必須">＊</span></legend>
@@ -201,9 +263,12 @@
         <p>© 2026 親孝行おにぎり</p>
       </div>
     </footer>
+
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="js/main.js" defer></script>
     <script src="js/reserve.js" defer></script>
+    <script src="js/liff-env.js" defer></script>
+    <script src="js/liff-message.js" defer></script>
     <script src="js/liff.js" defer></script>
 
 

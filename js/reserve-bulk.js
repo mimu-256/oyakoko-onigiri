@@ -1,0 +1,884 @@
+(function () {
+  var DUMMY = "images/logo.jpg";
+
+  var GROUPS = [
+    {
+      label: "期間・おすすめ",
+      items: [
+        { id: "m001", name: "高菜明太（8月限定）", price: 300 },
+        { id: "m002", name: "うなぎ", price: 420 },
+      ],
+    },
+    {
+      label: "360円",
+      items: [
+        { id: "m003", name: "肉そぼろ卵黄", price: 360 },
+        { id: "m004", name: "卵黄", price: 360 },
+        { id: "m005", name: "鮭", price: 360 },
+      ],
+    },
+    {
+      label: "330円",
+      items: [
+        { id: "m006", name: "明太クリームチーズ", price: 330 },
+        { id: "m007", name: "豚の生姜焼き", price: 330 },
+        { id: "m008", name: "豚キムチ", price: 330 },
+        { id: "m009", name: "肉そぼろ", price: 330 },
+      ],
+    },
+    {
+      label: "300円",
+      items: [
+        // { id: "m010", name: "イカの塩辛", price: 300 },
+        { id: "m011", name: "明太子", price: 300 },
+      ],
+    },
+    {
+      label: "280円",
+      items: [
+        { id: "m012", name: "ツナマヨ", price: 280 },
+        { id: "m013", name: "梅かつお", price: 280 },
+        { id: "m014", name: "おかか", price: 280 },
+        { id: "m015", name: "高菜", price: 280 },
+        { id: "m016", name: "こんぶ", price: 280 },
+      ],
+    },
+    {
+      label: "その他",
+      items: [
+        { id: "m017", name: "だし巻き玉子", price: 290 },
+      ],
+    },
+  ];
+
+  var BENTO_FIXED_ID = "m005";
+  var BENTO_LABEL = "お弁当";
+  var BENTO_BASE_PRICE = 980;
+  var BENTO_SURCHARGE = {
+    m012: 0,
+    m013: 0,
+    m014: 0,
+    m015: 0,
+    m011: 0,
+    m016: 0,
+    m002: 100,
+    m006: 30,
+    m008: 30,
+    m007: 30,
+    m009: 30,
+    m003: 50,
+    m005: 50,
+    m004: 50,
+    m001: 100,
+  };
+
+  var MIN_BENTO_QTY = 10;
+
+  var cart = {};
+  var bentoCart = {};
+  var ITEM_MAP = {};
+  GROUPS.forEach(function (g) {
+    g.items.forEach(function (it) {
+      ITEM_MAP[it.id] = it;
+    });
+  });
+
+  var root = document.getElementById("reserve-menu-root");
+  var bentoRoot = document.getElementById("reserve-bento-root");
+  var fab = document.getElementById("reserve-fab");
+  var fabCount = document.getElementById("fab-count");
+  var fabTotal = document.getElementById("fab-total");
+  var sheet = document.getElementById("reserve-sheet");
+  var backdrop = document.getElementById("sheet-backdrop");
+  var cartLines = document.getElementById("cart-lines");
+  var cartHeading = document.getElementById("cart-heading");
+  var cartEmpty = document.getElementById("cart-empty");
+  var cartClearBtn = document.getElementById("cart-clear");
+  var subtotalWrap = document.getElementById("cart-subtotal-wrap");
+  var subtotalEl = document.getElementById("cart-subtotal");
+  var subtotalCountEl = document.getElementById("cart-subtotal-count");
+  var cartFooter = document.getElementById("cart-footer");
+  var checkoutBtn = document.getElementById("bulk-checkout-btn");
+  var fabOpen = document.getElementById("reserve-fab-open");
+  var sheetClose = document.getElementById("sheet-close");
+  var bentoModal = document.getElementById("bento-modal");
+  var bentoModalBackdrop = document.getElementById("bento-modal-backdrop");
+  var bentoModalClose = document.getElementById("bento-modal-close");
+  var bentoChoices = document.getElementById("bento-choices");
+  var bentoModalConfirm = document.getElementById("bento-modal-confirm");
+  var bentoModalTotal = document.getElementById("bento-modal-total");
+  var bentoModalQtyEl = document.getElementById("bento-modal-qty");
+  var bentoModalQtyMinus = document.getElementById("bento-modal-qty-minus");
+  var bentoModalQtyPlus = document.getElementById("bento-modal-qty-plus");
+  var bentoFixedName = document.getElementById("bento-fixed-name");
+  var bentoFixedPrice = document.getElementById("bento-fixed-price");
+  var bentoSelectedChoiceId = null;
+  var bentoModalQty = 1;
+  var sheetScrollY = 0;
+  var bentoModalScrollY = 0;
+  var STORAGE = "oyakoko_reserve_bulk_cart_v1";
+
+  function bentoSurcharge(choiceId) {
+    return Object.prototype.hasOwnProperty.call(BENTO_SURCHARGE, choiceId)
+      ? BENTO_SURCHARGE[choiceId]
+      : 0;
+  }
+
+  function bentoSurchargeLabel(amount) {
+    return "+" + amount.toLocaleString("ja-JP") + "円";
+  }
+
+  function bentoPrice(choiceId) {
+    if (!ITEM_MAP[choiceId]) return 0;
+    return BENTO_BASE_PRICE + bentoSurcharge(choiceId);
+  }
+
+  function bentoDetailText(choiceId) {
+    var fixed = ITEM_MAP[BENTO_FIXED_ID];
+    var choice = ITEM_MAP[choiceId];
+    if (!fixed || !choice) return "";
+    return fixed.name + " / " + choice.name;
+  }
+
+  function getBentoQty(choiceId) {
+    return bentoCart[choiceId] > 0 ? bentoCart[choiceId] : 0;
+  }
+
+  function setBentoQty(choiceId, q) {
+    if (q <= 0) delete bentoCart[choiceId];
+    else bentoCart[choiceId] = q;
+    saveCart();
+    sync();
+  }
+
+  function addBento(choiceId, qty) {
+    if (!ITEM_MAP[choiceId]) return;
+    var add = qty > 0 ? qty : 1;
+    setBentoQty(choiceId, getBentoQty(choiceId) + add);
+  }
+
+  function migrateBentos(raw) {
+    bentoCart = {};
+    if (!raw) return;
+    if (Array.isArray(raw)) {
+      raw.forEach(function (b) {
+        if (b && b.choiceId) {
+          bentoCart[b.choiceId] = (bentoCart[b.choiceId] || 0) + 1;
+        }
+      });
+      return;
+    }
+    if (typeof raw === "object") {
+      Object.keys(raw).forEach(function (id) {
+        var q = raw[id];
+        if (q > 0 && ITEM_MAP[id]) bentoCart[id] = q;
+      });
+    }
+  }
+
+  function getBentoChoiceIds() {
+    var inCart = Object.keys(bentoCart).filter(function (id) {
+      return bentoCart[id] > 0 && ITEM_MAP[id];
+    });
+    var ordered = [];
+    getBentoChoiceItems().forEach(function (it) {
+      if (inCart.indexOf(it.id) !== -1) ordered.push(it.id);
+    });
+    inCart.forEach(function (id) {
+      if (ordered.indexOf(id) === -1) ordered.push(id);
+    });
+    return ordered;
+  }
+
+  function getAllMenuItems() {
+    var items = [];
+    GROUPS.forEach(function (g) {
+      g.items.forEach(function (it) {
+        items.push(it);
+      });
+    });
+    return items;
+  }
+
+  function getBentoChoiceItems() {
+    return getAllMenuItems()
+      .filter(function (it) {
+        return it.id !== "m017";
+      })
+      .slice()
+      .sort(function (a, b) {
+        var diff = bentoSurcharge(a.id) - bentoSurcharge(b.id);
+        if (diff !== 0) return diff;
+        return a.name.localeCompare(b.name, "ja");
+      });
+  }
+
+  function totalBentoQty() {
+    var n = 0;
+    Object.keys(bentoCart).forEach(function (id) {
+      var q = bentoCart[id];
+      if (q > 0) n += q;
+    });
+    return n;
+  }
+
+  function canSubmitBulk() {
+    return cartTotals().count > 0 && totalBentoQty() >= MIN_BENTO_QTY;
+  }
+
+  function money(n) {
+    return "¥" + n.toLocaleString("ja-JP");
+  }
+
+  function cartTotals() {
+    var count = 0;
+    var sum = 0;
+    Object.keys(cart).forEach(function (id) {
+      var q = cart[id];
+      if (q > 0) {
+        count += q;
+        sum += ITEM_MAP[id].price * q;
+      }
+    });
+    Object.keys(bentoCart).forEach(function (choiceId) {
+      var q = bentoCart[choiceId];
+      if (q > 0) {
+        count += q;
+        sum += bentoPrice(choiceId) * q;
+      }
+    });
+    return { count: count, sum: sum };
+  }
+
+  function saveCart() {
+    try {
+      localStorage.setItem(
+        STORAGE,
+        JSON.stringify({
+          items: cart,
+          bentos: bentoCart,
+        })
+      );
+      localStorage.setItem(
+        STORAGE + "_meta",
+        JSON.stringify({
+          orderText: buildOrderText(),
+          summaryLines: buildSummaryLines(),
+          total: money(cartTotals().sum),
+          count: cartTotals().count,
+          bentoQty: totalBentoQty(),
+        })
+      );
+    } catch (e) {}
+  }
+
+  function loadCart() {
+    try {
+      var raw = localStorage.getItem(STORAGE);
+      if (raw) {
+        var o = JSON.parse(raw);
+        if (o && typeof o === "object") {
+          if (o.items && typeof o.items === "object") {
+            cart = o.items;
+            migrateBentos(o.bentos);
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  function getQty(id) {
+    return cart[id] > 0 ? cart[id] : 0;
+  }
+
+  function setQty(id, q) {
+    if (q <= 0) delete cart[id];
+    else cart[id] = q;
+    saveCart();
+    sync();
+  }
+
+  function clearCart() {
+    if (!cartTotals().count) return;
+    if (!confirm("カート内の商品をすべて削除しますか？")) return;
+    cart = {};
+    bentoCart = {};
+    saveCart();
+    sync();
+  }
+
+  function formatTotalCount(count) {
+    return count > 0 ? "（" + count + "点）" : "";
+  }
+
+  function updateSubtotalDisplay(t) {
+    if (subtotalEl) subtotalEl.textContent = money(t.sum);
+    if (subtotalCountEl) subtotalCountEl.textContent = formatTotalCount(t.count);
+  }
+
+  function sync() {
+    document.querySelectorAll(".reserve-card").forEach(function (card) {
+      var id = card.getAttribute("data-id");
+      var el = card.querySelector(".reserve-card__qty");
+      if (el) el.textContent = String(getQty(id));
+    });
+    var t = cartTotals();
+    if (fabCount) fabCount.textContent = String(t.count);
+    if (fabTotal) fabTotal.textContent = money(t.sum);
+    renderCart();
+  }
+
+  function buildSummaryLines() {
+    var lines = [];
+    getBentoChoiceIds().forEach(function (choiceId) {
+      var q = bentoCart[choiceId];
+      var unit = bentoPrice(choiceId);
+      lines.push({
+        name: BENTO_LABEL,
+        detail: bentoDetailText(choiceId),
+        unit: money(unit),
+        qty: q,
+      });
+    });
+    getCartItemIds().forEach(function (id) {
+      var q = cart[id];
+      if (q <= 0) return;
+      var it = ITEM_MAP[id];
+      lines.push({
+        name: it.name,
+        detail: "",
+        unit: money(it.price),
+        qty: q,
+      });
+    });
+    return lines;
+  }
+
+  function buildOrderText() {
+    var lines = buildSummaryLines();
+    if (!lines.length) return "（品目なし）";
+    return lines
+      .map(function (line) {
+        var text = line.name + " ×" + line.qty;
+        if (line.detail) text += "\n  " + line.detail;
+        return text;
+      })
+      .join("\n\n");
+  }
+
+  function getCartItemIds() {
+    var inCart = Object.keys(cart).filter(function (id) {
+      return cart[id] > 0 && ITEM_MAP[id];
+    });
+    var ordered = [];
+    GROUPS.forEach(function (g) {
+      g.items.forEach(function (it) {
+        if (inCart.indexOf(it.id) !== -1) ordered.push(it.id);
+      });
+    });
+    inCart.forEach(function (id) {
+      if (ordered.indexOf(id) === -1) ordered.push(id);
+    });
+    return ordered;
+  }
+
+  function renderBentoSection() {
+    if (!bentoRoot) return;
+    var fixed = ITEM_MAP[BENTO_FIXED_ID];
+    if (!fixed) return;
+
+    bentoRoot.innerHTML = "";
+    var sec = document.createElement("section");
+    sec.className = "reserve-bento";
+    sec.setAttribute("aria-label", "お弁当");
+
+    var h2 = document.createElement("h2");
+    h2.className = "reserve-bento__title";
+    h2.textContent = "お弁当";
+
+    var card = document.createElement("article");
+    card.className = "reserve-bento__card";
+
+    var img = document.createElement("img");
+    img.className = "reserve-bento__img";
+    img.src = DUMMY;
+    img.width = 400;
+    img.height = 300;
+    img.alt = "";
+    img.loading = "lazy";
+
+    var body = document.createElement("div");
+    body.className = "reserve-bento__body";
+
+    var name = document.createElement("h3");
+    name.className = "reserve-bento__name";
+    name.textContent = "鮭 ＋ お好きなおにぎり1個";
+
+    var desc = document.createElement("p");
+    desc.className = "reserve-bento__desc";
+    desc.textContent = "鮭（固定）と、もう1個お好きな具を選べます。";
+
+    var price = document.createElement("p");
+    price.className = "reserve-bento__price";
+    price.textContent = money(BENTO_BASE_PRICE) + "〜";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "reserve-bento__btn";
+    btn.textContent = "お弁当を選ぶ";
+    btn.addEventListener("click", openBentoModal);
+
+    body.appendChild(name);
+    body.appendChild(desc);
+    body.appendChild(price);
+    body.appendChild(btn);
+    card.appendChild(img);
+    card.appendChild(body);
+    sec.appendChild(h2);
+    sec.appendChild(card);
+    bentoRoot.appendChild(sec);
+  }
+
+  function renderBentoChoices() {
+    if (!bentoChoices) return;
+    bentoChoices.innerHTML = "";
+    getBentoChoiceItems().forEach(function (it) {
+      var surcharge = bentoSurcharge(it.id);
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "bento-choice";
+      btn.setAttribute("role", "radio");
+      btn.setAttribute("aria-checked", "false");
+      btn.setAttribute("data-id", it.id);
+
+      var nm = document.createElement("span");
+      nm.className = "bento-choice__name";
+      nm.textContent = it.name;
+
+      var pr = document.createElement("span");
+      pr.className = "bento-choice__price";
+      pr.textContent = bentoSurchargeLabel(surcharge);
+
+      btn.appendChild(nm);
+      btn.appendChild(pr);
+      btn.addEventListener("click", function () {
+        selectBentoChoice(it.id);
+      });
+      bentoChoices.appendChild(btn);
+    });
+  }
+
+  function bentoTotalLabel(choiceId, qty) {
+    var count = qty > 0 ? qty : 1;
+    var unit = choiceId ? bentoPrice(choiceId) : BENTO_BASE_PRICE;
+    return "合計 " + money(unit * count);
+  }
+
+  function setBentoModalQty(qty) {
+    bentoModalQty = qty < 1 ? 1 : qty;
+    if (bentoModalQtyEl) bentoModalQtyEl.textContent = String(bentoModalQty);
+    if (bentoModalQtyMinus) bentoModalQtyMinus.disabled = bentoModalQty <= 1;
+    updateBentoModalTotal();
+  }
+
+  function updateBentoModalTotal() {
+    if (!bentoModalTotal || !bentoModalConfirm) return;
+    bentoModalTotal.removeAttribute("hidden");
+    bentoModalTotal.textContent = bentoTotalLabel(bentoSelectedChoiceId, bentoModalQty);
+    bentoModalConfirm.disabled = !bentoSelectedChoiceId;
+  }
+
+  function selectBentoChoice(choiceId) {
+    bentoSelectedChoiceId = choiceId;
+    if (!bentoChoices) return;
+    bentoChoices.querySelectorAll(".bento-choice").forEach(function (el) {
+      var selected = el.getAttribute("data-id") === choiceId;
+      el.classList.toggle("is-selected", selected);
+      el.setAttribute("aria-checked", selected ? "true" : "false");
+    });
+    updateBentoModalTotal();
+  }
+
+  function lockBentoScroll() {
+    bentoModalScrollY = window.scrollY || window.pageYOffset;
+    document.documentElement.classList.add("bento-modal-open");
+    document.body.classList.add("bento-modal-open");
+    document.body.style.top = "-" + bentoModalScrollY + "px";
+  }
+
+  function unlockBentoScroll() {
+    document.documentElement.classList.remove("bento-modal-open");
+    document.body.classList.remove("bento-modal-open");
+    document.body.style.top = "";
+    window.scrollTo(0, bentoModalScrollY);
+  }
+
+  function openBentoModal() {
+    if (!bentoModal || !bentoModalBackdrop) return;
+    bentoSelectedChoiceId = null;
+    setBentoModalQty(1);
+    if (bentoChoices) {
+      bentoChoices.querySelectorAll(".bento-choice").forEach(function (el) {
+        el.classList.remove("is-selected");
+        el.setAttribute("aria-checked", "false");
+      });
+    }
+    updateBentoModalTotal();
+    bentoModal.classList.add("is-open");
+    bentoModalBackdrop.classList.add("is-open");
+    bentoModal.setAttribute("aria-hidden", "false");
+    bentoModalBackdrop.setAttribute("aria-hidden", "false");
+    lockBentoScroll();
+  }
+
+  function closeBentoModal() {
+    if (!bentoModal || !bentoModalBackdrop) return;
+    bentoModal.classList.remove("is-open");
+    bentoModalBackdrop.classList.remove("is-open");
+    bentoModal.setAttribute("aria-hidden", "true");
+    bentoModalBackdrop.setAttribute("aria-hidden", "true");
+    unlockBentoScroll();
+  }
+
+  function initBentoModal() {
+    var fixed = ITEM_MAP[BENTO_FIXED_ID];
+    if (!fixed) return;
+    if (bentoFixedName) bentoFixedName.textContent = fixed.name;
+    if (bentoFixedPrice) bentoFixedPrice.textContent = "基本価格に含む";
+    renderBentoChoices();
+    setBentoModalQty(1);
+    if (bentoModalClose) {
+      bentoModalClose.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeBentoModal();
+      });
+    }
+    if (bentoModalBackdrop) {
+      bentoModalBackdrop.addEventListener("click", closeBentoModal);
+    }
+    if (bentoModal) {
+      bentoModal.addEventListener("click", function (e) {
+        if (e.target === bentoModal) closeBentoModal();
+      });
+    }
+    if (bentoModalQtyMinus) {
+      bentoModalQtyMinus.addEventListener("click", function () {
+        setBentoModalQty(bentoModalQty - 1);
+      });
+    }
+    if (bentoModalQtyPlus) {
+      bentoModalQtyPlus.addEventListener("click", function () {
+        setBentoModalQty(bentoModalQty + 1);
+      });
+    }
+    if (bentoModalConfirm) {
+      bentoModalConfirm.addEventListener("click", function () {
+        if (!bentoSelectedChoiceId) return;
+        addBento(bentoSelectedChoiceId, bentoModalQty);
+        closeBentoModal();
+        openSheet();
+      });
+    }
+  }
+
+  function renderMenu() {
+    if (!root) return;
+    root.innerHTML = "";
+    GROUPS.forEach(function (g) {
+      var sec = document.createElement("section");
+      sec.className = "reserve-group";
+      sec.setAttribute("aria-label", g.label);
+      var h2 = document.createElement("h2");
+      h2.className = "reserve-group__title";
+      h2.textContent = g.label;
+      sec.appendChild(h2);
+      var grid = document.createElement("div");
+      grid.className = "reserve-grid";
+      g.items.forEach(function (it) {
+        grid.appendChild(buildCard(it));
+      });
+      sec.appendChild(grid);
+      root.appendChild(sec);
+    });
+  }
+
+  function buildCard(it) {
+    var card = document.createElement("article");
+    card.className = "reserve-card";
+    card.setAttribute("data-id", it.id);
+    var img = document.createElement("img");
+    img.className = "reserve-card__img";
+    img.src = DUMMY;
+    img.width = 400;
+    img.height = 300;
+    img.alt = "";
+    img.loading = "lazy";
+    var body = document.createElement("div");
+    body.className = "reserve-card__body";
+    var name = document.createElement("h3");
+    name.className = "reserve-card__name";
+    name.textContent = it.name;
+    var price = document.createElement("p");
+    price.className = "reserve-card__price";
+    price.textContent = money(it.price);
+    var step = document.createElement("div");
+    step.className = "reserve-stepper";
+    step.setAttribute("role", "group");
+    step.setAttribute("aria-label", it.name + "の数量");
+    var btnM = document.createElement("button");
+    btnM.type = "button";
+    btnM.className = "reserve-stepper__btn";
+    btnM.setAttribute("aria-label", "1つ減らす");
+    btnM.textContent = "−";
+    var qty = document.createElement("span");
+    qty.className = "reserve-card__qty";
+    qty.textContent = String(getQty(it.id));
+    var btnP = document.createElement("button");
+    btnP.type = "button";
+    btnP.className = "reserve-stepper__btn";
+    btnP.setAttribute("aria-label", "1つ足す");
+    btnP.textContent = "+";
+    var id = it.id;
+    btnM.addEventListener("click", function () {
+      setQty(id, getQty(id) - 1);
+    });
+    btnP.addEventListener("click", function () {
+      setQty(id, getQty(id) + 1);
+    });
+    step.appendChild(btnM);
+    step.appendChild(qty);
+    step.appendChild(btnP);
+    body.appendChild(name);
+    body.appendChild(price);
+    body.appendChild(step);
+    card.appendChild(img);
+    card.appendChild(body);
+    return card;
+  }
+
+  function renderCart() {
+    if (!cartLines) return;
+    var t = cartTotals();
+    var has = t.count > 0;
+    if (cartEmpty) cartEmpty.hidden = has;
+    if (cartHeading) cartHeading.hidden = !has;
+    if (cartClearBtn) cartClearBtn.hidden = !has;
+    updateSubtotalDisplay(t);
+    cartLines.innerHTML = "";
+    getBentoChoiceIds().forEach(function (choiceId) {
+      var q = bentoCart[choiceId];
+      var price = bentoPrice(choiceId);
+      var li = document.createElement("li");
+      li.className = "reserve-line reserve-line--bento";
+      var thumb = document.createElement("img");
+      thumb.className = "reserve-line__thumb";
+      thumb.src = DUMMY;
+      thumb.width = 96;
+      thumb.height = 72;
+      thumb.alt = "";
+      thumb.decoding = "async";
+      var info = document.createElement("div");
+      info.className = "reserve-line__info";
+      var nm = document.createElement("span");
+      nm.className = "reserve-line__name";
+      nm.textContent = BENTO_LABEL;
+      var detail = document.createElement("p");
+      detail.className = "reserve-line__detail";
+      detail.textContent = bentoDetailText(choiceId);
+      var row = document.createElement("div");
+      row.className = "reserve-line__row";
+      var unit = document.createElement("span");
+      unit.className = "reserve-line__unit";
+      unit.textContent = "単価 " + money(price) + "（税込）";
+      var step = document.createElement("div");
+      step.className = "reserve-stepper";
+      step.setAttribute("role", "group");
+      step.setAttribute("aria-label", BENTO_LABEL + "（" + bentoDetailText(choiceId) + "）の数量");
+      var b1 = document.createElement("button");
+      b1.type = "button";
+      b1.className = "reserve-stepper__btn reserve-stepper__btn--sm";
+      b1.setAttribute("aria-label", "1つ減らす");
+      b1.textContent = "−";
+      var qty = document.createElement("span");
+      qty.className = "reserve-line__qty";
+      qty.textContent = String(q);
+      var b2 = document.createElement("button");
+      b2.type = "button";
+      b2.className = "reserve-stepper__btn reserve-stepper__btn--sm";
+      b2.setAttribute("aria-label", "1つ足す");
+      b2.textContent = "+";
+      (function (cid) {
+        b1.addEventListener("click", function () {
+          setBentoQty(cid, getBentoQty(cid) - 1);
+        });
+        b2.addEventListener("click", function () {
+          setBentoQty(cid, getBentoQty(cid) + 1);
+        });
+      })(choiceId);
+      step.appendChild(b1);
+      step.appendChild(qty);
+      step.appendChild(b2);
+      row.appendChild(unit);
+      row.appendChild(step);
+      var subP = document.createElement("p");
+      subP.className = "reserve-line__sub";
+      subP.textContent = "小計 " + money(price * q);
+      info.appendChild(nm);
+      info.appendChild(detail);
+      info.appendChild(row);
+      info.appendChild(subP);
+      li.appendChild(thumb);
+      li.appendChild(info);
+      cartLines.appendChild(li);
+    });
+    getCartItemIds().forEach(function (id) {
+      var q = cart[id];
+      if (q <= 0) return;
+      var it = ITEM_MAP[id];
+      var li = document.createElement("li");
+      li.className = "reserve-line";
+      var thumb = document.createElement("img");
+      thumb.className = "reserve-line__thumb";
+      thumb.src = DUMMY;
+      thumb.width = 96;
+      thumb.height = 72;
+      thumb.alt = "";
+      thumb.decoding = "async";
+      var info = document.createElement("div");
+      info.className = "reserve-line__info";
+      var nm = document.createElement("span");
+      nm.className = "reserve-line__name";
+      nm.textContent = it.name;
+      var row = document.createElement("div");
+      row.className = "reserve-line__row";
+      var unit = document.createElement("span");
+      unit.className = "reserve-line__unit";
+      unit.textContent = "単価 " + money(it.price) + "（税込）";
+      var step = document.createElement("div");
+      step.className = "reserve-stepper";
+      step.setAttribute("role", "group");
+      step.setAttribute("aria-label", it.name + "の数量");
+      var b1 = document.createElement("button");
+      b1.type = "button";
+      b1.className = "reserve-stepper__btn reserve-stepper__btn--sm";
+      b1.setAttribute("aria-label", "1つ減らす");
+      b1.textContent = "−";
+      var qty = document.createElement("span");
+      qty.className = "reserve-line__qty";
+      qty.textContent = String(q);
+      var b2 = document.createElement("button");
+      b2.type = "button";
+      b2.className = "reserve-stepper__btn reserve-stepper__btn--sm";
+      b2.setAttribute("aria-label", "1つ足す");
+      b2.textContent = "+";
+      (function (pid) {
+        b1.addEventListener("click", function () {
+          setQty(pid, getQty(pid) - 1);
+        });
+        b2.addEventListener("click", function () {
+          setQty(pid, getQty(pid) + 1);
+        });
+      })(id);
+      step.appendChild(b1);
+      step.appendChild(qty);
+      step.appendChild(b2);
+      row.appendChild(unit);
+      row.appendChild(step);
+      var subP = document.createElement("p");
+      subP.className = "reserve-line__sub";
+      subP.textContent = "小計 " + money(it.price * q) + "（" + q + "個）";
+      info.appendChild(nm);
+      info.appendChild(row);
+      info.appendChild(subP);
+      li.appendChild(thumb);
+      li.appendChild(info);
+      cartLines.appendChild(li);
+    });
+    if (cartFooter) cartFooter.hidden = !has;
+    var bulkMinHint = document.getElementById("bulk-min-hint");
+    var bulkBentoCount = document.getElementById("bulk-bento-count");
+    var bentoQty = totalBentoQty();
+    if (bulkBentoCount) bulkBentoCount.textContent = String(bentoQty);
+    if (bulkMinHint) bulkMinHint.hidden = !has || bentoQty >= MIN_BENTO_QTY;
+    if (checkoutBtn) checkoutBtn.disabled = !canSubmitBulk();
+  }
+
+  function lockSheetScroll() {
+    sheetScrollY = window.scrollY || window.pageYOffset;
+    document.documentElement.classList.add("reserve-sheet-open");
+    document.body.classList.add("reserve-sheet-open");
+    document.body.style.top = "-" + sheetScrollY + "px";
+  }
+
+  function unlockSheetScroll() {
+    document.documentElement.classList.remove("reserve-sheet-open");
+    document.body.classList.remove("reserve-sheet-open");
+    document.body.style.top = "";
+    window.scrollTo(0, sheetScrollY);
+  }
+
+  function openSheet() {
+    if (!sheet || !backdrop) return;
+    sheet.classList.add("is-open");
+    backdrop.classList.add("is-open");
+    lockSheetScroll();
+    if (fabOpen) fabOpen.setAttribute("aria-expanded", "true");
+    sheet.setAttribute("aria-hidden", "false");
+    backdrop.setAttribute("aria-hidden", "false");
+  }
+
+  function closeSheet() {
+    if (!sheet || !backdrop) return;
+    sheet.classList.remove("is-open");
+    backdrop.classList.remove("is-open");
+    unlockSheetScroll();
+    if (fabOpen) fabOpen.setAttribute("aria-expanded", "false");
+    sheet.setAttribute("aria-hidden", "true");
+    backdrop.setAttribute("aria-hidden", "true");
+  }
+
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener("click", function () {
+      if (!canSubmitBulk()) return;
+      window.location.href = "/reserve-bulk-checkout";
+    });
+  }
+
+  loadCart();
+  saveCart();
+  renderBentoSection();
+  initBentoModal();
+  renderMenu();
+  sync();
+
+  if (fabOpen) {
+    fabOpen.addEventListener("click", function () {
+      openSheet();
+    });
+  }
+  if (sheetClose) {
+    sheetClose.addEventListener("click", function () {
+      closeSheet();
+    });
+  }
+  if (cartClearBtn) {
+    cartClearBtn.addEventListener("click", clearCart);
+  }
+  if (backdrop) {
+    backdrop.addEventListener("click", function () {
+      closeSheet();
+    });
+  }
+
+  window.closeSheet = closeSheet;
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (bentoModal && bentoModal.classList.contains("is-open")) {
+      closeBentoModal();
+      return;
+    }
+    if (sheet && sheet.classList.contains("is-open")) closeSheet();
+  });
+})();

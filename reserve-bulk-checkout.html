@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja" class="reserve-page">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>お届け情報の入力 - 大口注文 - 親孝行おにぎり</title>
+    <meta
+      name="description"
+      content="大口注文の配達・受取情報入力。お弁当10箱以上のご注文。"
+    />
+    <link rel="icon" href="images/logo.jpg" type="image/jpeg" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/reserve.css" />
+  </head>
+  <body class="reserve-body reserve-checkout-body">
+    <a class="skip" href="#main">コンテンツへスキップ</a>
+    <header class="site-header">
+      <div class="top-bar">
+        <div class="top-bar-content">
+          <ul class="top-bar-main">
+            <li class="top-bar-main-phone"><a href="tel:0485119141">048-511-9141</a></li>
+            <li class="top-bar-main-contact"><a href="/faq">お問い合わせ</a></li>
+            <li class="top-bar-main-access"><a href="/access">アクセス</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="main-header">
+        <div class="main-header-content">
+          <div class="site-branding">
+            <p class="site-title"><a href="/">親孝行おにぎり</a></p>
+            <p class="site-description">鴻巣市のおにぎり専門店</p>
+          </div>
+          <button
+            type="button"
+            class="drawer-hamburger"
+            id="nav-toggle"
+            aria-expanded="false"
+            aria-controls="site-nav"
+            aria-label="ナビゲーションを開く"
+          >
+            <span class="drawer-hamburger__icon" aria-hidden="true">
+              <span class="drawer-hamburger__line"></span>
+              <span class="drawer-hamburger__line"></span>
+              <span class="drawer-hamburger__line"></span>
+            </span>
+          </button>
+          <nav class="main-navigation" id="site-nav" aria-label="メイン">
+            <ul class="menu">
+              <li><a href="/">メニュー</a></li>
+              <li><a href="/hours">営業時間</a></li>
+              <li><a href="/access">アクセス</a></li>
+              <li><a href="/payment">お支払い方法</a></li>
+              <li><a href="/faq">お問い合わせ</a></li>
+              <li><a href="/sns">各種SNS</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+    <div class="nav-drawer-backdrop" id="nav-backdrop" aria-hidden="true"></div>
+
+    <div class="site-content">
+      <div class="container-content">
+        <main id="main" class="content-area">
+          <p class="reserve-checkout-back">
+            <a href="/reserve-bulk">← カートに戻る</a>
+          </p>
+          <h1>お届け情報の入力</h1>
+
+          <section class="reserve-checkout-summary" aria-labelledby="checkout-summary-title">
+            <h2 class="reserve-checkout-summary__title" id="checkout-summary-title">ご注文内容</h2>
+            <ul class="reserve-checkout-summary__lines" id="checkout-summary"></ul>
+            <p class="reserve-checkout-summary__total">
+              小計<span class="reserve-checkout-summary__count" id="cart-subtotal-count"></span>
+              <span id="cart-subtotal">¥0</span>（税込）
+            </p>
+          </section>
+
+          <form
+            class="reserve-form reserve-checkout-form"
+            id="reserve-form"
+            name="bulk-order"
+            method="post"
+            action="/reserve-bulk-checkout"
+          >
+            <input type="hidden" name="order_lines" id="order_lines" value="" />
+            <h2 class="reserve-form__h">配達・お客様情報</h2>
+            <p>
+              <label for="r-name">お名前 <span class="req" aria-label="必須">＊</span></label>
+              <input type="text" name="customer_name" id="r-name" required autocomplete="name" />
+            </p>
+            <p>
+              <label for="r-tel">お電話番号 <span class="req" aria-label="必須">＊</span></label>
+              <input type="tel" name="customer_tel" id="r-tel" required autocomplete="tel" inputmode="tel" />
+            </p>
+            <fieldset class="reserve-form__fieldset">
+              <legend>配達希望 <span class="req" aria-label="必須">＊</span></legend>
+              <div class="reserve-radio-row" role="radiogroup" aria-label="配達希望">
+                <label class="reserve-radio">
+                  <input type="radio" name="delivery_wanted" id="r-delivery-yes" value="yes" required />
+                  配達を希望する
+                </label>
+                <label class="reserve-radio">
+                  <input type="radio" name="delivery_wanted" id="r-delivery-no" value="no" />
+                  配達を希望しない（店舗受取）
+                </label>
+              </div>
+              <p class="reserve-form__note reserve-form__note--tight">
+                配達は鴻巣市内のみ対応（配達無料）。市外の方はLINEのチャットにてご相談ください。
+              </p>
+            </fieldset>
+            <div id="delivery-address-wrap" hidden>
+              <h3 class="reserve-form__h">配達先</h3>
+              <p>
+                <label for="r-zip">郵便番号 <span class="req" aria-label="必須">＊</span></label>
+                <input type="text" name="delivery_zip" id="r-zip" inputmode="numeric" autocomplete="postal-code" placeholder="例：365-0078" />
+              </p>
+              <p>
+                <label for="r-city">市区町村</label>
+                <input type="text" name="delivery_city" id="r-city" value="埼玉県鴻巣市" readonly />
+              </p>
+              <p>
+                <label for="r-street">番地 <span class="req" aria-label="必須">＊</span></label>
+                <input type="text" name="delivery_street" id="r-street" autocomplete="street-address" placeholder="例：赤見台1-2-3" />
+              </p>
+              <p>
+                <label for="r-building">建物名・部屋番号（任意）</label>
+                <input type="text" name="delivery_building" id="r-building" autocomplete="address-line2" />
+              </p>
+              <p>
+                <label for="r-delivery-note">配達時の注意（任意）</label>
+                <textarea name="delivery_note" id="r-delivery-note" rows="2" placeholder="表札・入口・置き配不可 など"></textarea>
+              </p>
+            </div>
+            <div id="pickup-datetime-wrap">
+              <p>
+                <label for="r-date">希望日 <span class="req" aria-label="必須">＊</span></label>
+                <input type="date" name="pickup_date" id="r-date" required />
+                <span class="reserve-date-hint">2日後以降・1ヶ月以内でお選びください。</span>
+              </p>
+              <fieldset class="reserve-form__fieldset">
+                <legend>希望時間 <span class="req" aria-label="必須">＊</span></legend>
+                <div class="reserve-time-row" role="group" aria-label="希望の時刻（30分刻み）">
+                  <div class="reserve-time__field">
+                    <label for="r-hour">時</label>
+                    <select name="pickup_hour" id="r-hour" required autocomplete="off">
+                      <option value="">選択</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                      <option value="13">13</option>
+                      <option value="14">14</option>
+                      <option value="15">15</option>
+                      <option value="16">16</option>
+                      <option value="17">17</option>
+                    </select>
+                  </div>
+                  <div class="reserve-time__field">
+                    <label for="r-min">分</label>
+                    <select name="pickup_min" id="r-min" required autocomplete="off">
+                      <option value="">選択</option>
+                      <option value="00">00</option>
+                      <option value="30">30</option>
+                    </select>
+                  </div>
+                </div>
+                <p class="reserve-time-hint">30分刻みで時刻を指定できます。</p>
+              </fieldset>
+            </div>
+            <div id="delivery-datetime-wrap" hidden>
+              <fieldset class="reserve-form__fieldset">
+                <legend>配達希望日時 <span class="req" aria-label="必須">＊</span></legend>
+                <p class="delivery-slot-selected" id="delivery-slot-selected" hidden></p>
+                <button type="button" class="delivery-slot-open-btn" id="delivery-slot-open">
+                  配達日時を選ぶ
+                </button>
+                <p class="reserve-form__note reserve-form__note--tight">
+                  配達員のシフトに合わせて、空いている時間帯からお選びください（30分刻み）。
+                </p>
+              </fieldset>
+            </div>
+            <p>
+              <label for="r-note">ご要望・メモ（任意）</label>
+              <textarea name="note" id="r-note" rows="3" placeholder="アレルギー・到着目安 など"></textarea>
+            </p>
+            <p class="reserve-form__note">
+              内容は目安です。在庫・配達状況によりご希望に沿えない場合、担当よりお電話する場合がございます。
+            </p>
+            <button type="submit" class="reserve-form__submit" id="reserve-submit">注文内容を送信</button>
+          </form>
+        </main>
+      </div>
+    </div>
+
+    <footer class="site-bottom">
+      <div class="site-bottom-content">
+        <p>© 2026 親孝行おにぎり</p>
+      </div>
+    </footer>
+
+    <div class="delivery-slot-backdrop" id="delivery-slot-backdrop" aria-hidden="true"></div>
+    <div
+      class="delivery-slot-modal"
+      id="delivery-slot-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delivery-slot-title"
+      aria-hidden="true"
+    >
+      <div class="delivery-slot-modal__panel">
+        <button type="button" class="delivery-slot-modal__close" id="delivery-slot-close" aria-label="閉じる">
+          ×
+        </button>
+        <header class="delivery-slot-modal__head">
+          <h2 class="delivery-slot-modal__title" id="delivery-slot-title">配達日時の選択</h2>
+          <div class="delivery-slot-modal__nav">
+            <button type="button" class="delivery-slot-modal__nav-btn" id="delivery-slot-prev">前の週へ</button>
+            <p class="delivery-slot-modal__month" id="delivery-slot-month" aria-live="polite"></p>
+            <button type="button" class="delivery-slot-modal__nav-btn" id="delivery-slot-next">次の週へ</button>
+          </div>
+          <ul class="delivery-slot-modal__legend" aria-label="凡例">
+            <li><span class="delivery-slot-grid__slot delivery-slot-grid__slot--open" aria-hidden="true">○</span> 予約可</li>
+            <li><span class="delivery-slot-grid__slot delivery-slot-grid__slot--blocked" aria-hidden="true">×</span> 不可</li>
+          </ul>
+        </header>
+        <div class="delivery-slot-modal__body" id="delivery-slot-grid"></div>
+        <footer class="delivery-slot-modal__foot">
+          <button type="button" class="delivery-slot-modal__confirm" id="delivery-slot-confirm" disabled>
+            この日時で決定
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/delivery-schedule.js" defer></script>
+    <script src="js/delivery-slot-picker.js" defer></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/reserve-bulk-checkout.js" defer></script>
+    <script src="js/liff-env.js" defer></script>
+    <script src="js/liff-message.js" defer></script>
+    <script src="js/liff-bulk.js" defer></script>
+  </body>
+</html>

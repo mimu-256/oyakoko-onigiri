@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja" class="reserve-page">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>大口注文（配送） - 親孝行おにぎり</title>
+    <meta
+      name="description"
+      content="お弁当10箱以上の大口注文・配達。鴻巣市内配達無料。2日前以降のご希望日時でご注文ください。"
+    />
+    <link rel="icon" href="images/logo.jpg" type="image/jpeg" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/reserve.css" />
+  </head>
+  <body class="reserve-body">
+    <a class="skip" href="#main">コンテンツへスキップ</a>
+    <header class="site-header">
+      <div class="top-bar">
+        <div class="top-bar-content">
+          <ul class="top-bar-main">
+            <li class="top-bar-main-phone"><a href="tel:0485119141">048-511-9141</a></li>
+            <li class="top-bar-main-contact"><a href="/faq">お問い合わせ</a></li>
+            <li class="top-bar-main-access"><a href="/access">アクセス</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="main-header">
+        <div class="main-header-content">
+          <div class="site-branding">
+            <p class="site-title"><a href="/">親孝行おにぎり</a></p>
+            <p class="site-description">鴻巣市のおにぎり専門店</p>
+          </div>
+          <button
+            type="button"
+            class="drawer-hamburger"
+            id="nav-toggle"
+            aria-expanded="false"
+            aria-controls="site-nav"
+            aria-label="ナビゲーションを開く"
+          >
+            <span class="drawer-hamburger__icon" aria-hidden="true">
+              <span class="drawer-hamburger__line"></span>
+              <span class="drawer-hamburger__line"></span>
+              <span class="drawer-hamburger__line"></span>
+            </span>
+          </button>
+          <nav class="main-navigation" id="site-nav" aria-label="メイン">
+            <ul class="menu">
+              <li><a href="/">メニュー</a></li>
+              <li><a href="/hours">営業時間</a></li>
+              <li><a href="/access">アクセス</a></li>
+              <li><a href="/payment">お支払い方法</a></li>
+              <!-- <li><a href="/reserve" aria-current="page">ご予約</a></li> -->
+              <li><a href="/faq">お問い合わせ</a></li>
+              <li><a href="/sns">各種SNS</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+    <div class="nav-drawer-backdrop" id="nav-backdrop" aria-hidden="true"></div>
+
+    <div class="site-content">
+      <div class="container-content">
+        <main id="main" class="content-area">
+          <h1>大口注文（配送）</h1>
+          <p class="reserve-lead">
+            <strong>お弁当10箱以上</strong>からご注文いただけます。品目と数量を選び、カートで内容を確認のうえ<strong>次へ</strong>からお届け情報を入力してください。配達をご希望の場合は<strong>鴻巣市内のみ配達可</strong>（配達無料）です。市外の方はLINEのチャットにてご相談ください。お支払いは<strong>配達時</strong>にお願いします。
+          </p>
+          <p class="reserve-alt-link">
+            <a href="/reserve">通常のご予約（来店受取）はこちら</a>
+          </p>
+          <div id="reserve-bento-root"></div>
+          <div id="reserve-menu-root"></div>
+        </main>
+      </div>
+    </div>
+
+    <div class="reserve-fab" id="reserve-fab">
+      <button
+        type="button"
+        class="reserve-fab__btn"
+        id="reserve-fab-open"
+        aria-expanded="false"
+        aria-controls="reserve-sheet"
+      >
+        <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+        <span class="reserve-fab__count" id="fab-count">0</span>
+        <span class="reserve-fab__total" id="fab-total">¥0</span>
+        <span class="reserve-fab__label">カートを見る</span>
+      </button>
+    </div>
+
+    <div class="bento-modal-backdrop" id="bento-modal-backdrop" aria-hidden="true"></div>
+    <div
+      class="bento-modal"
+      id="bento-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="bento-modal-title"
+      aria-hidden="true"
+    >
+      <div class="bento-modal__panel">
+        <button type="button" class="bento-modal__close" id="bento-modal-close" aria-label="閉じる">×</button>
+        <div class="bento-modal__body">
+          <h2 class="bento-modal__title" id="bento-modal-title">お弁当のおにぎりを選ぶ</h2>
+          <p class="bento-modal__lead">鮭（固定）＋ お好きなおにぎり1個</p>
+          <div class="bento-modal__fixed">
+            <span class="bento-modal__fixed-label">固定</span>
+            <span class="bento-modal__fixed-name" id="bento-fixed-name"></span>
+            <span class="bento-modal__fixed-price" id="bento-fixed-price"></span>
+          </div>
+          <p class="bento-modal__pick-label">もう1個を選んでください</p>
+          <div class="bento-modal__choices" id="bento-choices" role="radiogroup" aria-label="お好きなおにぎり"></div>
+        </div>
+        <div class="bento-modal__footer">
+          <div class="bento-modal__summary">
+            <div class="bento-modal__qty-row">
+              <span class="bento-modal__qty-label">数量</span>
+              <div class="reserve-stepper bento-modal__stepper" role="group" aria-label="追加する箱数">
+                <button
+                  type="button"
+                  class="reserve-stepper__btn reserve-stepper__btn--sm"
+                  id="bento-modal-qty-minus"
+                  aria-label="1箱減らす"
+                >
+                  −
+                </button>
+                <span class="bento-modal__qty" id="bento-modal-qty">1</span>
+                <button
+                  type="button"
+                  class="reserve-stepper__btn reserve-stepper__btn--sm"
+                  id="bento-modal-qty-plus"
+                  aria-label="1箱足す"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <p class="bento-modal__total" id="bento-modal-total" aria-live="polite">合計 ¥980</p>
+          </div>
+          <button type="button" class="bento-modal__confirm" id="bento-modal-confirm" disabled>カートに追加</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="reserve-sheet-backdrop" id="sheet-backdrop" aria-hidden="true"></div>
+    <div class="reserve-sheet reserve-sheet--cart" id="reserve-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="sheet-title">
+      <div class="reserve-sheet__handle" aria-hidden="true"></div>
+      <button type="button" class="reserve-sheet__close" id="sheet-close" aria-label="カートを閉じる">×</button>
+      <div class="reserve-sheet__head">
+        <h2 id="sheet-title">カート内の商品</h2>
+        <button type="button" class="reserve-cart-clear" id="cart-clear" hidden aria-label="カート内の商品をすべて削除">
+          <i class="fa fa-trash-o" aria-hidden="true"></i> 全て削除
+        </button>
+      </div>
+      <div class="reserve-sheet__body">
+        <p class="reserve-empty" id="cart-empty">カートに商品がありません。お弁当10箱以上からご注文ください。</p>
+        <h3 class="reserve-cart__heading" id="cart-heading" hidden>注文内容</h3>
+        <ul
+          class="reserve-cart-lines"
+          id="cart-lines"
+          aria-label="注文商品一覧"
+          aria-live="polite"
+        ></ul>
+      </div>
+      <div class="reserve-sheet__footer" id="cart-footer" hidden>
+        <div class="reserve-sheet__subtotal" id="cart-subtotal-wrap">
+          <span>小計<span class="reserve-sheet__subtotal-count" id="cart-subtotal-count"></span></span>
+          <span id="cart-subtotal">¥0</span>
+        </div>
+        <p class="reserve-bulk-min" id="bulk-min-hint" hidden>
+          お弁当は10箱以上ご注文ください（現在 <span id="bulk-bento-count">0</span> 箱）
+        </p>
+        <button type="button" class="reserve-sheet__next" id="bulk-checkout-btn" disabled>次へ</button>
+      </div>
+    </div>
+
+    <footer class="site-bottom">
+      <div class="site-bottom-content">
+        <p>© 2026 親孝行おにぎり</p>
+      </div>
+    </footer>
+    <script src="js/main.js" defer></script>
+    <script src="js/reserve-bulk.js" defer></script>
+
+
+  </body>
+</html>

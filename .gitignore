@@ -4,6 +4,9 @@
 # 作業メモ（ローカルのみ）
 作業メモ*.txt
 
+# 期間限定おにぎり（ローカルのみ）
+期間限定/
+
 # Firebase（ローカルキャッシュ）
 .firebase/
 firebase-debug.log

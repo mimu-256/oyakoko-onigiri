@@ -1,0 +1,13 @@
+{
+  "slotMinutes": 30,
+  "blockAdjacent": 1,
+  "defaultShift": {
+    "startHour": 10,
+    "startMin": 0,
+    "endHour": 17,
+    "endMin": 0
+  },
+  "closedDates": [],
+  "dateOverrides": {},
+  "bookings": []
+}
