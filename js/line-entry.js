@@ -1,5 +1,3 @@
-var LIFF_ID = "2010802590-KMkAidDs";
-
 (function () {
   var statusEl = document.getElementById("entry-status");
 
@@ -19,8 +17,12 @@ var LIFF_ID = "2010802590-KMkAidDs";
     return;
   }
 
-  liff
-    .init({ liffId: LIFF_ID })
+  if (!window.LiffCore || typeof liff === "undefined") {
+    setStatus("うまく接続できませんでした", { state: "error" });
+    return;
+  }
+
+  LiffCore.init()
     .then(function () {
       if (!liff.isInClient()) {
         setStatus("LINEアプリから開いてください", { state: "error" });
@@ -30,15 +32,15 @@ var LIFF_ID = "2010802590-KMkAidDs";
       setStatus("ログインを確認しています…", { state: "loading" });
 
       if (!liff.isLoggedIn()) {
-        liff.login();
+        LiffCore.login();
         return;
       }
 
       setStatus("ご予約ページへ移動します…", { state: "loading" });
-      location.href = "/reserve";
+      location.replace(LiffCore.appPath("reserve"));
     })
     .catch(function (err) {
       console.error(err);
-      setStatus("うまく接続できませんでした", { state: "error" });
+      setStatus(LiffCore.formatError(err), { state: "error" });
     });
 })();

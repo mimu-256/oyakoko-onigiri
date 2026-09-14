@@ -1,13 +1,15 @@
 (function () {
   var DUMMY = "images/logo.jpg";
+  var BENTO_IMAGE = "images/menu/お弁当.jpg";
 
   var GROUPS = [
     {
-      label: "期間・おすすめ",
-      items: [
-        { id: "m001", name: "高菜明太（8月限定）", price: 300 },
-        { id: "m002", name: "うなぎ", price: 420 },
-      ],
+      label: "期間限定",
+      items: [{ id: "m001", name: "月見てりやきチキン（9月限定）", price: 360, image: "9_月見てりやきチキン.png" }],
+    },
+    {
+      label: "420円",
+      items: [{ id: "m002", name: "うなぎ", price: 420 }],
     },
     {
       label: "360円",
@@ -45,8 +47,10 @@
     },
     {
       label: "その他",
+      note: "だし巻き玉子は3個入りです",
       items: [
-        { id: "m017", name: "だし巻き玉子", price: 290 },
+        { id: "m017", name: "だし巻き玉子", price: 290, image: "だし巻き" },
+        { id: "m018", name: "お惣菜", price: 550, image: "お惣菜.JPG" },
       ],
     },
   ];
@@ -72,7 +76,7 @@
     m001: 100,
   };
 
-  var MIN_BENTO_QTY = 10;
+  var MIN_ONIGIRI_QTY = 20;
 
   var cart = {};
   var bentoCart = {};
@@ -82,6 +86,24 @@
       ITEM_MAP[it.id] = it;
     });
   });
+
+  function itemImage(id) {
+    var it = ITEM_MAP[id];
+    if (!it) return DUMMY;
+    var base = it.image || it.name;
+    if (/\.(jpe?g|png|webp|gif)$/i.test(base)) {
+      return "images/menu/" + base;
+    }
+    return "images/menu/" + base + ".jpg";
+  }
+
+  function setItemImage(img, id) {
+    img.src = itemImage(id);
+    img.onerror = function () {
+      img.onerror = null;
+      img.src = DUMMY;
+    };
+  }
 
   var root = document.getElementById("reserve-menu-root");
   var bentoRoot = document.getElementById("reserve-bento-root");
@@ -110,8 +132,6 @@
   var bentoModalQtyEl = document.getElementById("bento-modal-qty");
   var bentoModalQtyMinus = document.getElementById("bento-modal-qty-minus");
   var bentoModalQtyPlus = document.getElementById("bento-modal-qty-plus");
-  var bentoFixedName = document.getElementById("bento-fixed-name");
-  var bentoFixedPrice = document.getElementById("bento-fixed-price");
   var bentoSelectedChoiceId = null;
   var bentoModalQty = 1;
   var sheetScrollY = 0;
@@ -203,7 +223,7 @@
   function getBentoChoiceItems() {
     return getAllMenuItems()
       .filter(function (it) {
-        return it.id !== "m017";
+        return it.id !== "m017" && it.id !== "m018";
       })
       .slice()
       .sort(function (a, b) {
@@ -222,8 +242,17 @@
     return n;
   }
 
+  function totalOnigiriQty() {
+    var n = 0;
+    Object.keys(cart).forEach(function (id) {
+      var q = cart[id];
+      if (q > 0) n += q;
+    });
+    return n;
+  }
+
   function canSubmitBulk() {
-    return cartTotals().count > 0 && totalBentoQty() >= MIN_BENTO_QTY;
+    return totalOnigiriQty() >= MIN_ONIGIRI_QTY;
   }
 
   function money(n) {
@@ -363,7 +392,7 @@
         if (line.detail) text += "\n  " + line.detail;
         return text;
       })
-      .join("\n\n");
+      .join("\n");
   }
 
   function getCartItemIds() {
@@ -399,13 +428,18 @@
     var card = document.createElement("article");
     card.className = "reserve-bento__card";
 
+    var imgBtn = document.createElement("button");
+    imgBtn.type = "button";
+    imgBtn.className = "reserve-bento__img-btn";
+    imgBtn.setAttribute("aria-label", "お弁当を選ぶ");
+    imgBtn.addEventListener("click", openBentoModal);
+
     var img = document.createElement("img");
     img.className = "reserve-bento__img";
-    img.src = DUMMY;
-    img.width = 400;
-    img.height = 300;
+    img.src = BENTO_IMAGE;
     img.alt = "";
     img.loading = "lazy";
+    imgBtn.appendChild(img);
 
     var body = document.createElement("div");
     body.className = "reserve-bento__body";
@@ -416,7 +450,7 @@
 
     var desc = document.createElement("p");
     desc.className = "reserve-bento__desc";
-    desc.textContent = "鮭（固定）と、もう1個お好きな具を選べます。";
+    desc.textContent = "おかずはから揚げ、ポテサラ、だし巻き玉子です";
 
     var price = document.createElement("p");
     price.className = "reserve-bento__price";
@@ -432,7 +466,7 @@
     body.appendChild(desc);
     body.appendChild(price);
     body.appendChild(btn);
-    card.appendChild(img);
+    card.appendChild(imgBtn);
     card.appendChild(body);
     sec.appendChild(h2);
     sec.appendChild(card);
@@ -541,10 +575,7 @@
   }
 
   function initBentoModal() {
-    var fixed = ITEM_MAP[BENTO_FIXED_ID];
-    if (!fixed) return;
-    if (bentoFixedName) bentoFixedName.textContent = fixed.name;
-    if (bentoFixedPrice) bentoFixedPrice.textContent = "基本価格に含む";
+    if (!ITEM_MAP[BENTO_FIXED_ID]) return;
     renderBentoChoices();
     setBentoModalQty(1);
     if (bentoModalClose) {
@@ -585,6 +616,10 @@
   function renderMenu() {
     if (!root) return;
     root.innerHTML = "";
+    var menuNote = document.createElement("p");
+    menuNote.className = "reserve-menu-note";
+    menuNote.textContent = "おにぎりは1つの価格です。";
+    root.appendChild(menuNote);
     GROUPS.forEach(function (g) {
       var sec = document.createElement("section");
       sec.className = "reserve-group";
@@ -593,6 +628,12 @@
       h2.className = "reserve-group__title";
       h2.textContent = g.label;
       sec.appendChild(h2);
+      if (g.note) {
+        var groupNote = document.createElement("p");
+        groupNote.className = "reserve-group__note";
+        groupNote.textContent = g.note;
+        sec.appendChild(groupNote);
+      }
       var grid = document.createElement("div");
       grid.className = "reserve-grid";
       g.items.forEach(function (it) {
@@ -603,17 +644,60 @@
     });
   }
 
+  function buildMenuModalItems() {
+    var list = [];
+    GROUPS.forEach(function (g) {
+      g.items.forEach(function (item) {
+        list.push({
+          id: item.id,
+          src: itemImage(item.id),
+          title: item.name,
+          price: money(item.price),
+          getQty: (function (id) {
+            return function () {
+              return getQty(id);
+            };
+          })(item.id),
+          setQty: (function (id) {
+            return function (q) {
+              setQty(id, q);
+            };
+          })(item.id),
+        });
+      });
+    });
+    return list;
+  }
+
+  function menuModalIndexFor(id, items) {
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === id) return i;
+    }
+    return 0;
+  }
+
   function buildCard(it) {
     var card = document.createElement("article");
     card.className = "reserve-card";
     card.setAttribute("data-id", it.id);
+    var mediaBtn = document.createElement("button");
+    mediaBtn.type = "button";
+    mediaBtn.className = "reserve-card__media-btn";
+    mediaBtn.setAttribute("aria-label", it.name + "の画像を拡大");
     var img = document.createElement("img");
     img.className = "reserve-card__img";
-    img.src = DUMMY;
-    img.width = 400;
-    img.height = 300;
+    setItemImage(img, it.id);
     img.alt = "";
     img.loading = "lazy";
+    mediaBtn.appendChild(img);
+    mediaBtn.addEventListener("click", function () {
+      if (!window.MenuImageModal) return;
+      var items = buildMenuModalItems();
+      MenuImageModal.open({
+        items: items,
+        index: menuModalIndexFor(it.id, items),
+      });
+    });
     var body = document.createElement("div");
     body.className = "reserve-card__body";
     var name = document.createElement("h3");
@@ -652,7 +736,7 @@
     body.appendChild(name);
     body.appendChild(price);
     body.appendChild(step);
-    card.appendChild(img);
+    card.appendChild(mediaBtn);
     card.appendChild(body);
     return card;
   }
@@ -673,7 +757,7 @@
       li.className = "reserve-line reserve-line--bento";
       var thumb = document.createElement("img");
       thumb.className = "reserve-line__thumb";
-      thumb.src = DUMMY;
+      thumb.src = BENTO_IMAGE;
       thumb.width = 96;
       thumb.height = 72;
       thumb.alt = "";
@@ -740,7 +824,7 @@
       li.className = "reserve-line";
       var thumb = document.createElement("img");
       thumb.className = "reserve-line__thumb";
-      thumb.src = DUMMY;
+      setItemImage(thumb, id);
       thumb.width = 96;
       thumb.height = 72;
       thumb.alt = "";
@@ -797,10 +881,10 @@
     });
     if (cartFooter) cartFooter.hidden = !has;
     var bulkMinHint = document.getElementById("bulk-min-hint");
-    var bulkBentoCount = document.getElementById("bulk-bento-count");
-    var bentoQty = totalBentoQty();
-    if (bulkBentoCount) bulkBentoCount.textContent = String(bentoQty);
-    if (bulkMinHint) bulkMinHint.hidden = !has || bentoQty >= MIN_BENTO_QTY;
+    var bulkOnigiriCount = document.getElementById("bulk-onigiri-count");
+    var onigiriQty = totalOnigiriQty();
+    if (bulkOnigiriCount) bulkOnigiriCount.textContent = String(onigiriQty);
+    if (bulkMinHint) bulkMinHint.hidden = !has || onigiriQty >= MIN_ONIGIRI_QTY;
     if (checkoutBtn) checkoutBtn.disabled = !canSubmitBulk();
   }
 
@@ -841,14 +925,20 @@
   if (checkoutBtn) {
     checkoutBtn.addEventListener("click", function () {
       if (!canSubmitBulk()) return;
-      window.location.href = "/reserve-bulk-checkout";
+      window.location.href = window.LiffCore
+        ? LiffCore.appPath("reserve-bulk-checkout")
+        : "/reserve-bulk-checkout";
     });
   }
 
   loadCart();
+  // お弁当一時中止
+  if (Object.keys(bentoCart).length) {
+    bentoCart = {};
+  }
   saveCart();
-  renderBentoSection();
-  initBentoModal();
+  // renderBentoSection();
+  // initBentoModal();
   renderMenu();
   sync();
 

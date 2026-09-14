@@ -38,6 +38,9 @@ window.LiffMessage = {
       "ご注文：\n" + (info.order || ""),
       this.formatSubtotal(info.count, info.total)
     );
+    if (info.note) {
+      lines.push("", "備考：" + info.note);
+    }
     return lines.join("\n");
   },
 };

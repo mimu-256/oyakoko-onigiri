@@ -1,14 +1,16 @@
 
 (function () {
   var DUMMY = "images/logo.jpg";
+  var BENTO_IMAGE = "images/menu/お弁当.jpg";
 
   var GROUPS = [
     {
-      label: "期間・おすすめ",
-      items: [
-        { id: "m001", name: "高菜明太（8月限定）", price: 300 },
-        { id: "m002", name: "うなぎ", price: 420 },
-      ],
+      label: "期間限定",
+      items: [{ id: "m001", name: "月見てりやきチキン（9月限定）", price: 360, image: "9_月見てりやきチキン.png" }],
+    },
+    {
+      label: "420円",
+      items: [{ id: "m002", name: "うなぎ", price: 420 }],
     },
     {
       label: "360円",
@@ -46,8 +48,10 @@
     },
     {
       label: "その他",
+      note: "だし巻き玉子は3個入りです",
       items: [
-        { id: "m017", name: "だし巻き玉子", price: 290 },
+        { id: "m017", name: "だし巻き玉子", price: 290, image: "だし巻き" },
+        { id: "m018", name: "お惣菜", price: 550, image: "お惣菜.JPG" },
       ],
     },
   ];
@@ -82,6 +86,24 @@
     });
   });
 
+  function itemImage(id) {
+    var it = ITEM_MAP[id];
+    if (!it) return DUMMY;
+    var base = it.image || it.name;
+    if (/\.(jpe?g|png|webp|gif)$/i.test(base)) {
+      return "images/menu/" + base;
+    }
+    return "images/menu/" + base + ".jpg";
+  }
+
+  function setItemImage(img, id) {
+    img.src = itemImage(id);
+    img.onerror = function () {
+      img.onerror = null;
+      img.src = DUMMY;
+    };
+  }
+
   var root = document.getElementById("reserve-menu-root");
   var bentoRoot = document.getElementById("reserve-bento-root");
   var fab = document.getElementById("reserve-fab");
@@ -97,6 +119,7 @@
   var subtotalEl = document.getElementById("cart-subtotal");
   var subtotalCountEl = document.getElementById("cart-subtotal-count");
   var form = document.getElementById("reserve-form");
+  var submitBtn = document.getElementById("reserve-submit");
   var orderLinesInput = document.getElementById("order_lines");
   var fabOpen = document.getElementById("reserve-fab-open");
   var sheetClose = document.getElementById("sheet-close");
@@ -109,8 +132,6 @@
   var bentoModalQtyEl = document.getElementById("bento-modal-qty");
   var bentoModalQtyMinus = document.getElementById("bento-modal-qty-minus");
   var bentoModalQtyPlus = document.getElementById("bento-modal-qty-plus");
-  var bentoFixedName = document.getElementById("bento-fixed-name");
-  var bentoFixedPrice = document.getElementById("bento-fixed-price");
   var bentoSelectedChoiceId = null;
   var bentoModalQty = 1;
   var sheetScrollY = 0;
@@ -203,7 +224,7 @@
   function getBentoChoiceItems() {
     return getAllMenuItems()
       .filter(function (it) {
-        return it.id !== "m017";
+        return it.id !== "m017" && it.id !== "m018";
       })
       .slice()
       .sort(function (a, b) {
@@ -391,6 +412,71 @@
     }
   }
 
+  var PICKUP_LAST_HOUR = 17;
+
+  function isWeekendDate(d) {
+    var day = d.getDay();
+    return day === 0 || day === 6;
+  }
+
+  function pickupHourMinForDate(dateStr) {
+    if (!dateStr) return 10;
+    return isWeekendDate(parseDateString(dateStr)) ? 7 : 10;
+  }
+
+  function rebuildHourOptions(preferred) {
+    if (!hourIn || !dateIn || !dateIn.value) return;
+    var minHour = pickupHourMinForDate(dateIn.value);
+    var keep = preferred || hourIn.value;
+    hourIn.innerHTML = "";
+    var empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "選択";
+    hourIn.appendChild(empty);
+    for (var h = minHour; h <= PICKUP_LAST_HOUR; h++) {
+      var opt = document.createElement("option");
+      opt.value = String(h);
+      opt.textContent = String(h);
+      hourIn.appendChild(opt);
+    }
+    if (keep && Number(keep) >= minHour && Number(keep) <= PICKUP_LAST_HOUR) {
+      hourIn.value = keep;
+    } else {
+      hourIn.value = String(minHour);
+    }
+  }
+
+  function suggestDefaultPickupTime(dateStr) {
+    var now = new Date();
+    now.setMinutes(now.getMinutes() + 60);
+    var hour = now.getHours();
+    var min = Math.ceil(now.getMinutes() / 5) * 5;
+    if (min >= 60) {
+      min = 0;
+      hour += 1;
+    }
+    var minHour = pickupHourMinForDate(dateStr);
+    if (hour > PICKUP_LAST_HOUR || hour >= 18) {
+      hour = minHour;
+      min = 0;
+    } else if (hour < minHour) {
+      hour = minHour;
+      min = 0;
+    }
+    return {
+      hour: String(hour),
+      min: (min < 10 ? "0" : "") + min,
+    };
+  }
+
+  function isValidPickupTime(dateStr, hour, min) {
+    if (!dateStr || hour === "" || min === "") return false;
+    var h = parseInt(hour, 10);
+    if (isNaN(h)) return false;
+    var minHour = pickupHourMinForDate(dateStr);
+    return h >= minHour && h <= PICKUP_LAST_HOUR;
+  }
+
   function formatTotalCount(count) {
     return count > 0 ? "（" + count + "点）" : "";
   }
@@ -398,6 +484,11 @@
   function updateSubtotalDisplay(t) {
     if (subtotalEl) subtotalEl.textContent = money(t.sum);
     if (subtotalCountEl) subtotalCountEl.textContent = formatTotalCount(t.count);
+  }
+
+  function updateSubmitButton() {
+    if (!submitBtn) return;
+    submitBtn.disabled = cartTotals().count <= 0;
   }
 
   function sync() {
@@ -410,11 +501,14 @@
     if (fabCount) fabCount.textContent = String(t.count);
     if (fabTotal) fabTotal.textContent = money(t.sum);
     renderCart();
+    updateSubmitButton();
     if (orderLinesInput) {
       orderLinesInput.value = buildOrderText();
     }
     updateDateConstraints();
   }
+
+  window.updateReserveSubmitState = updateSubmitButton;
 
   function buildOrderText() {
     var lines = [];
@@ -472,13 +566,18 @@
     var card = document.createElement("article");
     card.className = "reserve-bento__card";
 
+    var imgBtn = document.createElement("button");
+    imgBtn.type = "button";
+    imgBtn.className = "reserve-bento__img-btn";
+    imgBtn.setAttribute("aria-label", "お弁当を選ぶ");
+    imgBtn.addEventListener("click", openBentoModal);
+
     var img = document.createElement("img");
     img.className = "reserve-bento__img";
-    img.src = DUMMY;
-    img.width = 400;
-    img.height = 300;
+    img.src = BENTO_IMAGE;
     img.alt = "";
     img.loading = "lazy";
+    imgBtn.appendChild(img);
 
     var body = document.createElement("div");
     body.className = "reserve-bento__body";
@@ -489,7 +588,7 @@
 
     var desc = document.createElement("p");
     desc.className = "reserve-bento__desc";
-    desc.textContent = "鮭（固定）と、もう1個お好きな具を選べます。";
+    desc.textContent = "おかずはから揚げ、ポテサラ、だし巻き玉子です";
 
     var price = document.createElement("p");
     price.className = "reserve-bento__price";
@@ -505,9 +604,13 @@
     body.appendChild(desc);
     body.appendChild(price);
     body.appendChild(btn);
-    card.appendChild(img);
+    card.appendChild(imgBtn);
     card.appendChild(body);
     sec.appendChild(h2);
+    var bentoNote = document.createElement("p");
+    bentoNote.className = "reserve-bento__note";
+    bentoNote.textContent = "お弁当は2日前からのご予約になります";
+    sec.appendChild(bentoNote);
     sec.appendChild(card);
     bentoRoot.appendChild(sec);
   }
@@ -614,10 +717,7 @@
   }
 
   function initBentoModal() {
-    var fixed = ITEM_MAP[BENTO_FIXED_ID];
-    if (!fixed) return;
-    if (bentoFixedName) bentoFixedName.textContent = fixed.name;
-    if (bentoFixedPrice) bentoFixedPrice.textContent = "基本価格に含む";
+    if (!ITEM_MAP[BENTO_FIXED_ID]) return;
     renderBentoChoices();
     setBentoModalQty(1);
     if (bentoModalClose) {
@@ -666,6 +766,12 @@
       h2.className = "reserve-group__title";
       h2.textContent = g.label;
       sec.appendChild(h2);
+      if (g.note) {
+        var groupNote = document.createElement("p");
+        groupNote.className = "reserve-group__note";
+        groupNote.textContent = g.note;
+        sec.appendChild(groupNote);
+      }
       var grid = document.createElement("div");
       grid.className = "reserve-grid";
       g.items.forEach(function (it) {
@@ -676,17 +782,60 @@
     });
   }
 
+  function buildMenuModalItems() {
+    var list = [];
+    GROUPS.forEach(function (g) {
+      g.items.forEach(function (item) {
+        list.push({
+          id: item.id,
+          src: itemImage(item.id),
+          title: item.name,
+          price: money(item.price),
+          getQty: (function (id) {
+            return function () {
+              return getQty(id);
+            };
+          })(item.id),
+          setQty: (function (id) {
+            return function (q) {
+              setQty(id, q);
+            };
+          })(item.id),
+        });
+      });
+    });
+    return list;
+  }
+
+  function menuModalIndexFor(id, items) {
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === id) return i;
+    }
+    return 0;
+  }
+
   function buildCard(it) {
     var card = document.createElement("article");
     card.className = "reserve-card";
     card.setAttribute("data-id", it.id);
+    var mediaBtn = document.createElement("button");
+    mediaBtn.type = "button";
+    mediaBtn.className = "reserve-card__media-btn";
+    mediaBtn.setAttribute("aria-label", it.name + "の画像を拡大");
     var img = document.createElement("img");
     img.className = "reserve-card__img";
-    img.src = DUMMY;
-    img.width = 400;
-    img.height = 300;
+    setItemImage(img, it.id);
     img.alt = "";
     img.loading = "lazy";
+    mediaBtn.appendChild(img);
+    mediaBtn.addEventListener("click", function () {
+      if (!window.MenuImageModal) return;
+      var items = buildMenuModalItems();
+      MenuImageModal.open({
+        items: items,
+        index: menuModalIndexFor(it.id, items),
+      });
+    });
     var body = document.createElement("div");
     body.className = "reserve-card__body";
     var name = document.createElement("h3");
@@ -725,7 +874,7 @@
     body.appendChild(name);
     body.appendChild(price);
     body.appendChild(step);
-    card.appendChild(img);
+    card.appendChild(mediaBtn);
     card.appendChild(body);
     return card;
   }
@@ -747,7 +896,7 @@
       li.className = "reserve-line reserve-line--bento";
       var thumb = document.createElement("img");
       thumb.className = "reserve-line__thumb";
-      thumb.src = DUMMY;
+      thumb.src = BENTO_IMAGE;
       thumb.width = 96;
       thumb.height = 72;
       thumb.alt = "";
@@ -814,7 +963,7 @@
       li.className = "reserve-line";
       var thumb = document.createElement("img");
       thumb.className = "reserve-line__thumb";
-      thumb.src = DUMMY;
+      setItemImage(thumb, id);
       thumb.width = 96;
       thumb.height = 72;
       thumb.alt = "";
@@ -869,10 +1018,6 @@
       li.appendChild(info);
       cartLines.appendChild(li);
     });
-    if (form) {
-      var submit = form.querySelector('button[type="submit"]');
-      if (submit) submit.disabled = !has;
-    }
   }
 
   function lockSheetScroll() {
@@ -910,8 +1055,13 @@
   }
 
   loadCart();
-  renderBentoSection();
-  initBentoModal();
+  // お弁当一時中止
+  if (Object.keys(bentoCart).length) {
+    bentoCart = {};
+    saveCart();
+  }
+  // renderBentoSection();
+  // initBentoModal();
   renderMenu();
   sync();
 
@@ -973,14 +1123,16 @@
       }
     }
     if (dateHintEl) {
+      var timeHint =
+        "土日は7:00〜、平日は10:00〜でお選びください。水曜日は定休日のため選択肢に表示されません。";
       if (hasBentoInCart()) {
         dateHintEl.textContent =
-          "お弁当を含むご注文は2日後以降・1ヶ月以内でお選びください。水曜日は定休日のため選択肢に表示されません。";
+          "お弁当を含むご注文は2日後以降・1ヶ月以内でお選びください。" + timeHint;
       } else {
-        dateHintEl.textContent =
-          "本日から1ヶ月以内でお選びください。水曜日は定休日のため選択肢に表示されません。";
+        dateHintEl.textContent = "本日から1ヶ月以内でお選びください。" + timeHint;
       }
     }
+    rebuildHourOptions(hourIn ? hourIn.value : "");
   }
 
   window.validateReservePickupDate = function () {
@@ -993,45 +1145,31 @@
       updateDateConstraints();
       return false;
     }
+    if (!hourIn || !minIn) return true;
+    if (!isValidPickupTime(dateIn.value, hourIn.value, minIn.value)) {
+      var minHour = pickupHourMinForDate(dateIn.value);
+      alert(
+        isWeekendDate(parseDateString(dateIn.value))
+          ? "土日は7:00〜" + PICKUP_LAST_HOUR + ":55でお選びください。"
+          : "平日は10:00〜" + PICKUP_LAST_HOUR + ":55でお選びください。"
+      );
+      rebuildHourOptions();
+      return false;
+    }
     return true;
   };
 
   if (dateIn && hourIn && minIn) {
-    var date = new Date();
-    var start = new Date();
-    start.setHours(0, 0, 0, 0);
-    var end = new Date(date);
-    end.setMonth(end.getMonth() + 1);
-
-    date.setHours(date.getHours() + 1);
-
-    var hour = date.getHours();
-    var min = date.getMinutes();
-    min = Math.ceil(min / 5) * 5;
-    if (min >= 60) {
-      min = 0;
-      hour += 1;
-    }
-
-    if (hour >= 18) {
-      hour = 12;
-      min = 0;
-      date.setDate(date.getDate() + 1);
-    } else if (hour < 7) {
-      hour = 10;
-      min = 0;
-    }
-
-    hourIn.value = String(hour);
-    minIn.value = (min < 10 ? "0" : "") + min;
+    dateIn.addEventListener("change", function () {
+      rebuildHourOptions();
+    });
 
     updateDateConstraints();
-    if (dateIn.tagName === "SELECT") {
-      var candidate = cloneDay(date);
-      var earliest = getEarliestPickupDate();
-      if (candidate < earliest) candidate = earliest;
-      var validDate = nextValidPickupDate(candidate);
-      if (validDate) dateIn.value = toDateInputString(validDate);
+    if (dateIn.value) {
+      var suggested = suggestDefaultPickupTime(dateIn.value);
+      hourIn.value = suggested.hour;
+      minIn.value = suggested.min;
+      rebuildHourOptions(hourIn.value);
     }
   }
 })();

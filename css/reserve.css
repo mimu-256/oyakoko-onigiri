@@ -2,6 +2,7 @@
 html.reserve-page {
   font-size: 76%;
   touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
 }
 
 html.reserve-page body {
@@ -33,6 +34,15 @@ html.reserve-page label {
   padding-bottom: 5.5rem;
 }
 
+.reserve-body .container-content {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+}
+
+.reserve-body .content-area > h1:first-child {
+  margin-top: 20px;
+  margin-bottom: 0.5em;
+}
+
 @media screen and (min-width: 980px) {
   .reserve-body {
     padding-bottom: 6rem;
@@ -47,7 +57,7 @@ html.reserve-page label {
 }
 
 .reserve-alt-link {
-  margin: -0.75rem 0 1.5rem;
+  margin: 0 0 1rem;
   font-size: 1rem;
 }
 
@@ -59,10 +69,6 @@ html.reserve-page label {
 .reserve-bulk-min {
   font-size: 0.95rem;
   color: #b45309;
-  background: #fff8eb;
-  border: 1px solid #f0d9a8;
-  border-radius: 8px;
-  padding: 0.65rem 0.75rem;
   margin: 0 0 0.75rem;
   line-height: 1.5;
 }
@@ -107,16 +113,16 @@ html.reserve-page label {
 
 /* お弁当 */
 .reserve-bento {
-  margin-bottom: 2.25rem;
+  margin-bottom: 0.625rem;
 }
 
 .reserve-bento__title {
   font-size: 1.05rem;
   font-weight: 700;
   color: #111;
-  margin: 0 0 0.75rem;
-  padding-bottom: 0.35rem;
-  border-bottom: 2px solid #004c71;
+  margin: 0 0 0.25rem;
+  padding-bottom: 0;
+  border-bottom: 1px solid #004c71;
 }
 
 .reserve-bento__card {
@@ -130,18 +136,39 @@ html.reserve-page label {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.reserve-bento__img {
+.reserve-bento__img-btn {
+  display: block;
   width: 7.5rem;
-  height: 5.75rem;
+  align-self: stretch;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: #f0f0f0;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+  line-height: 0;
+  overflow: hidden;
+}
+
+.reserve-bento__img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  object-position: center center;
+  transform: scale(1.2);
   flex-shrink: 0;
   background: #f0f0f0;
+  display: block;
+}
+
+.reserve-bento__img-btn:hover .reserve-bento__img {
+  opacity: 0.92;
 }
 
 @media screen and (min-width: 520px) {
-  .reserve-bento__img {
+  .reserve-bento__img-btn {
     width: 9rem;
-    height: 6.75rem;
   }
 }
 
@@ -191,6 +218,40 @@ html.reserve-page label {
 
 .reserve-bento__btn:hover {
   background: #003a57;
+}
+
+/* 大口注文：お弁当メイン */
+.reserve-bulk-page .reserve-bento {
+  margin-bottom: 2.5rem;
+}
+
+.reserve-bulk-page .reserve-bento__card {
+  flex-direction: column;
+  gap: 0;
+}
+
+.reserve-bulk-page .reserve-bento__img-btn {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.reserve-bulk-page .reserve-bento__img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  transform: none;
+  max-height: none;
+}
+
+.reserve-bulk-page .reserve-bento__body {
+  padding: 1rem 1.1rem 1.15rem;
+}
+
+@media screen and (min-width: 520px) {
+  .reserve-bulk-page .reserve-bento__img {
+    aspect-ratio: 16 / 10;
+  }
 }
 
 /* お弁当モーダル */
@@ -491,16 +552,37 @@ body.bento-modal-open {
 }
 
 .reserve-group {
-  margin-bottom: 2rem;
+  margin-bottom: 0.625rem;
 }
 
 .reserve-group__title {
   font-size: 1.05rem;
   font-weight: 700;
   color: #111;
-  margin: 0 0 0.75rem;
-  padding-bottom: 0.35rem;
-  border-bottom: 2px solid #004c71;
+  margin: 0 0 0.25rem;
+  padding-bottom: 0;
+  border-bottom: 1px solid #004c71;
+}
+
+.reserve-menu-note {
+  margin: 20px 0 0;
+  font-size: 0.92rem;
+  color: #666;
+  line-height: 1.55;
+}
+
+.reserve-bento__note {
+  margin: 0 0 0.65rem;
+  font-size: 0.92rem;
+  color: #666;
+  line-height: 1.55;
+}
+
+.reserve-group__note {
+  margin: 0 0 0.5rem;
+  font-size: 0.88rem;
+  color: #666;
+  line-height: 1.5;
 }
 
 .reserve-grid {
@@ -526,12 +608,64 @@ body.bento-modal-open {
   flex-direction: column;
 }
 
+.reserve-card__media-btn {
+  display: block;
+  width: 100%;
+  border: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #f0f0f0;
+  cursor: zoom-in;
+  font-family: inherit;
+  line-height: 0;
+}
+
+.reserve-card__media-btn:hover .reserve-card__img {
+  opacity: 0.92;
+}
+
+.reserve-card__media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
 .reserve-card__img {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: 100%;
   object-fit: cover;
-  background: #f0f0f0;
   display: block;
+}
+
+@media screen and (max-width: 519px) {
+  .reserve-grid {
+    gap: 0.5rem;
+  }
+
+  .reserve-card__body {
+    padding: 0.4rem 0.45rem 0.5rem;
+  }
+
+  .reserve-card__name {
+    font-size: 0.85rem;
+    min-height: 2.2em;
+  }
+
+  .reserve-card__price {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .reserve-stepper__btn {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.05rem;
+  }
 }
 
 .reserve-card__body {
@@ -699,7 +833,7 @@ body.bento-modal-open {
   flex-direction: column;
   transform: translate3d(0, 105%, 0);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 0.35rem 1rem 0;
+  padding: 0.35rem 0 0;
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
   pointer-events: none;
   visibility: hidden;
@@ -714,8 +848,38 @@ body.bento-modal-open {
   -webkit-overflow-scrolling: touch;
 }
 
+.reserve-sheet__inner {
+  width: 100%;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 30px;
+  padding-right: 30px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+@media screen and (min-width: 782px) {
+  .reserve-sheet__inner {
+    padding-left: 50px;
+    padding-right: 50px;
+  }
+}
+
 .reserve-sheet--cart.is-open {
   overflow: hidden;
+}
+
+.reserve-sheet--cart .reserve-sheet__inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.reserve-sheet--cart .reserve-sheet__head {
+  flex-shrink: 0;
 }
 
 .reserve-sheet__body {
@@ -1640,14 +1804,16 @@ body.delivery-slot-open {
   }
 }
 
-/* LINEログイン入口 */
+/* LINEログイン入口・予約完了 */
 .line-entry-body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
+  justify-content: flex-start;
+  padding: max(22vh, calc(1.25rem + env(safe-area-inset-top, 0px))) 1.5rem 1.5rem;
   background: #fff;
   color: #444;
   font-family: "游ゴシック体", YuGothic, "游ゴシック", "Yu Gothic", "メイリオ", Meiryo, sans-serif;
@@ -1710,4 +1876,271 @@ body.delivery-slot-open {
 .line-entry__action {
   width: 100%;
   margin-top: 0.25rem;
+}
+
+/* 予約完了: 閉じるボタンを親指の届きやすい位置に（固定配置で確実に） */
+.line-entry-body.line-entry-body--complete {
+  padding: max(1rem, env(safe-area-inset-top, 0px)) 1.25rem
+    calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  justify-content: flex-start;
+  align-items: stretch;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
+.line-entry--complete {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 20rem;
+  margin: 0 auto;
+  min-height: calc(
+    100dvh - max(1rem, env(safe-area-inset-top, 0px)) -
+      calc(5.5rem + env(safe-area-inset-bottom, 0px))
+  );
+}
+
+.line-entry__main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: center;
+  padding: 0 0 1rem;
+}
+
+.line-entry-body--complete .line-entry__main {
+  padding-top: 22vh;
+}
+
+.line-entry-body--complete .line-entry__logo {
+  width: 6.25rem;
+  height: 6.25rem;
+  margin-bottom: 1rem;
+}
+
+.line-entry-body--complete .line-entry__title {
+  margin-bottom: 0.75rem;
+  font-size: 1.35rem;
+  line-height: 1.45;
+}
+
+.line-entry-body--complete .line-entry__lead {
+  margin-bottom: 0;
+  font-size: 1.1rem;
+  line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+}
+
+.line-entry-body--complete .line-entry__lead-line {
+  display: block;
+  text-align: center;
+}
+
+.line-entry-body--complete .line-entry__action {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  width: min(20rem, calc(100% - 2.5rem));
+  margin: 0;
+  bottom: max(4.5rem, calc(3.25rem + env(safe-area-inset-bottom, 0px)));
+  padding: 1rem 1.25rem;
+  font-size: 1.05rem;
+}
+
+/* メニュー画像ポップアップ（お弁当以外） */
+html.menu-image-modal-open,
+body.menu-image-modal-open {
+  overflow: hidden;
+}
+
+body.menu-image-modal-open {
+  position: fixed;
+  width: 100%;
+}
+
+.menu-image-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1350;
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.menu-image-modal-backdrop.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu-image-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1360;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.menu-image-modal.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu-image-modal__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  max-width: calc(100vw - 2rem);
+}
+
+.menu-image-modal__nav {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #333;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  padding: 0 0 0.1rem;
+}
+
+.menu-image-modal__nav:hover:not(:disabled) {
+  background: #fff;
+}
+
+.menu-image-modal__nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.menu-image-modal__nav[hidden] {
+  display: none;
+}
+
+.menu-image-modal__panel {
+  position: relative;
+  flex: 0 1 auto;
+  width: min(90vw, 26rem);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+.menu-image-modal__close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 2;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #333;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.menu-image-modal__viewport {
+  overflow: hidden;
+  width: 100%;
+  touch-action: pan-y;
+}
+
+.menu-image-modal__img {
+  display: block;
+  width: 100%;
+  height: min(calc(100dvh - 9rem), 34rem);
+  object-fit: cover;
+  background: #f0f0f0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.menu-image-modal__img--out-left {
+  transform: translateX(-28%);
+  opacity: 0;
+}
+
+.menu-image-modal__img--out-right {
+  transform: translateX(28%);
+  opacity: 0;
+}
+
+.menu-image-modal__img--in-right {
+  transform: translateX(28%);
+  opacity: 0;
+}
+
+.menu-image-modal__img--in-left {
+  transform: translateX(-28%);
+  opacity: 0;
+}
+
+.menu-image-modal__meta {
+  padding: 0.85rem 1rem 1.1rem;
+  text-align: center;
+}
+
+.menu-image-modal__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.menu-image-modal__price {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #004c71;
+}
+
+.menu-image-modal__price[hidden] {
+  display: none;
+}
+
+.menu-image-modal__stepper {
+  margin-top: 0.75rem;
+}
+
+.menu-image-modal__stepper-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.2rem;
+}
+
+.menu-image-modal__qty {
+  min-width: 2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
 }

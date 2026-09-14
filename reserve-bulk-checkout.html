@@ -2,72 +2,27 @@
 <html lang="ja" class="reserve-page">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>お届け情報の入力 - 大口注文 - 親孝行おにぎり</title>
     <meta
       name="description"
-      content="大口注文の配達・受取情報入力。お弁当10箱以上のご注文。"
+      content="大口注文の配達・受取情報入力。おにぎり20個以上のご注文。"
     />
     <link rel="icon" href="images/logo.jpg" type="image/jpeg" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/reserve.css" />
+    <link rel="stylesheet" href="css/style.css?v=20250904" />
+    <link rel="stylesheet" href="css/reserve.css?v=20250904" />
   </head>
   <body class="reserve-body reserve-checkout-body">
-    <a class="skip" href="#main">コンテンツへスキップ</a>
-    <header class="site-header">
-      <div class="top-bar">
-        <div class="top-bar-content">
-          <ul class="top-bar-main">
-            <li class="top-bar-main-phone"><a href="tel:0485119141">048-511-9141</a></li>
-            <li class="top-bar-main-contact"><a href="/faq">お問い合わせ</a></li>
-            <li class="top-bar-main-access"><a href="/access">アクセス</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="main-header">
-        <div class="main-header-content">
-          <div class="site-branding">
-            <p class="site-title"><a href="/">親孝行おにぎり</a></p>
-            <p class="site-description">鴻巣市のおにぎり専門店</p>
-          </div>
-          <button
-            type="button"
-            class="drawer-hamburger"
-            id="nav-toggle"
-            aria-expanded="false"
-            aria-controls="site-nav"
-            aria-label="ナビゲーションを開く"
-          >
-            <span class="drawer-hamburger__icon" aria-hidden="true">
-              <span class="drawer-hamburger__line"></span>
-              <span class="drawer-hamburger__line"></span>
-              <span class="drawer-hamburger__line"></span>
-            </span>
-          </button>
-          <nav class="main-navigation" id="site-nav" aria-label="メイン">
-            <ul class="menu">
-              <li><a href="/">メニュー</a></li>
-              <li><a href="/hours">営業時間</a></li>
-              <li><a href="/access">アクセス</a></li>
-              <li><a href="/payment">お支払い方法</a></li>
-              <li><a href="/faq">お問い合わせ</a></li>
-              <li><a href="/sns">各種SNS</a></li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-    </header>
-    <div class="nav-drawer-backdrop" id="nav-backdrop" aria-hidden="true"></div>
-
     <div class="site-content">
       <div class="container-content">
         <main id="main" class="content-area">
           <p class="reserve-checkout-back">
-            <a href="/reserve-bulk">← カートに戻る</a>
+            <a href="/line-entry/reserve-bulk">← カートに戻る</a>
           </p>
           <h1>お届け情報の入力</h1>
 
@@ -188,10 +143,10 @@
             </div>
             <p>
               <label for="r-note">ご要望・メモ（任意）</label>
-              <textarea name="note" id="r-note" rows="3" placeholder="アレルギー・到着目安 など"></textarea>
+              <textarea name="note" id="r-note" rows="3"></textarea>
             </p>
             <p class="reserve-form__note">
-              内容は目安です。在庫・配達状況によりご希望に沿えない場合、担当よりお電話する場合がございます。
+              内容は目安です。在庫・配達状況によりご希望に沿えない場合、担当よりご連絡する場合がございます。
             </p>
             <button type="submit" class="reserve-form__submit" id="reserve-submit">注文内容を送信</button>
           </form>
@@ -241,14 +196,14 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/delivery-schedule.js" defer></script>
-    <script src="js/delivery-slot-picker.js" defer></script>
+    <script src="js/firebase-config.js?v=20250904"></script>
+    <script src="js/delivery-schedule.js?v=20250904" defer></script>
+    <script src="js/delivery-slot-picker.js?v=20250904" defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="js/main.js" defer></script>
-    <script src="js/reserve-bulk-checkout.js" defer></script>
-    <script src="js/liff-env.js" defer></script>
-    <script src="js/liff-message.js" defer></script>
-    <script src="js/liff-bulk.js" defer></script>
+    <script src="js/reserve-bulk-checkout.js?v=20250915" defer></script>
+    <script src="js/liff-env.js?v=20250904" defer></script>
+    <script src="js/liff-core.js?v=20250904" defer></script>
+    <script src="js/liff-message.js?v=20250904" defer></script>
+    <script src="js/liff-bulk.js?v=20250915" defer></script>
   </body>
 </html>

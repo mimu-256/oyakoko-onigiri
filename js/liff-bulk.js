@@ -1,5 +1,3 @@
-var LIFF_ID = "2010802590-KMkAidDs";
-
 (function () {
   var submitBtn = document.getElementById("reserve-submit");
 
@@ -43,21 +41,25 @@ var LIFF_ID = "2010802590-KMkAidDs";
       "希望日時：" +
         (window.LiffMessage
           ? LiffMessage.formatDateTime(info.date, info.hour, info.min)
-          : info.date + " " + info.hour + ":" + info.min),
-      "",
-      "ご注文：\n" + info.order,
+          : info.date + " " + info.hour + ":" + info.min)
+    );
+    lines.push("");
+    lines.push("ご注文：");
+    if (info.order) {
+      lines.push(info.order);
+    }
+    lines.push("");
+    lines.push(
       window.LiffMessage
         ? LiffMessage.formatSubtotal(info.count, info.total, { taxIncluded: true })
         : "小計：" + (info.count ? info.count + "点 " : "") + info.total + "（税込）"
     );
     if (info.note) lines.push("備考：" + info.note);
-    lines.push("お支払い：配達時");
     return lines.join("\n");
   }
 
   function initLiff() {
-    liff
-      .init({ liffId: LIFF_ID })
+    LiffCore.init()
       .then(function () {
         if (!liff.isInClient()) {
           alert("LINEアプリから開いてください");
@@ -65,7 +67,7 @@ var LIFF_ID = "2010802590-KMkAidDs";
         }
 
         if (!liff.isLoggedIn()) {
-          liff.login();
+          LiffCore.login();
           return;
         }
 
@@ -84,13 +86,13 @@ var LIFF_ID = "2010802590-KMkAidDs";
       })
       .catch(function (err) {
         console.error(err);
-        notifyError("うまく接続できませんでした");
+        notifyError(LiffCore.formatError(err));
       });
   }
 
   if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
     if (submitBtn) submitBtn.disabled = false;
-  } else {
+  } else if (window.LiffCore) {
     initLiff();
   }
 
@@ -107,7 +109,7 @@ var LIFF_ID = "2010802590-KMkAidDs";
         return;
       }
       if (window.canSubmitBulkOrder && !window.canSubmitBulkOrder()) {
-        alert("お弁当は10箱以上ご注文ください。");
+        alert("おにぎりは20個以上ご注文ください。");
         return;
       }
       if (window.validateBulkCheckout && !window.validateBulkCheckout()) {
@@ -170,7 +172,7 @@ var LIFF_ID = "2010802590-KMkAidDs";
           try {
             localStorage.removeItem("oyakoko_reserve_bulk_cart_v1");
           } catch (e) {}
-          location.href = "/reserve-complete?bulk=1";
+          location.href = LiffCore.appPath("reserve-complete?bulk=1");
         })
         .catch(function (err) {
           if (err && err.message === "slot unavailable") {

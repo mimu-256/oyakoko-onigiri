@@ -1,6 +1,6 @@
 (function () {
   var STORAGE = "oyakoko_reserve_bulk_cart_v1";
-  var MIN_BENTO_QTY = 10;
+  var MIN_ONIGIRI_QTY = 20;
 
   function loadState() {
     try {
@@ -16,15 +16,27 @@
     }
   }
 
+  function onigiriQtyFromState(state) {
+    var items = state.cart && state.cart.items ? state.cart.items : {};
+    var n = 0;
+    Object.keys(items).forEach(function (id) {
+      var q = items[id];
+      if (q > 0) n += q;
+    });
+    return n;
+  }
+
   function canSubmitBulk() {
     var state = loadState();
     if (!state) return false;
-    return state.meta.bentoQty >= MIN_BENTO_QTY && state.meta.count > 0;
+    return onigiriQtyFromState(state) >= MIN_ONIGIRI_QTY;
   }
 
   function redirectIfInvalid() {
     if (!canSubmitBulk()) {
-      window.location.href = "/reserve-bulk";
+      window.location.href = window.LiffCore
+        ? LiffCore.appPath("reserve-bulk")
+        : "/reserve-bulk";
     }
   }
 
@@ -48,7 +60,7 @@
     var lines = meta.summaryLines;
     if (!lines || !lines.length) {
       var fallback = document.createElement("li");
-      fallback.className = =="reserve-checkout-line reserve-checkout-line--fallback";
+      fallback.className = "reserve-checkout-line reserve-checkout-line--fallback";
       fallback.textContent = meta.orderText || "（品目なし）";
       summaryEl.appendChild(fallback);
       return;

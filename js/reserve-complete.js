@@ -1,5 +1,3 @@
-var LIFF_ID = "2010802590-KMkAidDs";
-
 (function () {
   var isBulk = /[?&]bulk=1(?:&|$)/.test(location.search);
   var titleEl = document.getElementById("complete-title");
@@ -12,7 +10,13 @@ var LIFF_ID = "2010802590-KMkAidDs";
 
   function closePage() {
     if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
-      location.href = isBulk ? "/reserve-bulk" : "/reserve";
+      location.href = isBulk
+        ? window.LiffCore
+          ? LiffCore.appPath("reserve-bulk")
+          : "/reserve-bulk"
+        : window.LiffCore
+          ? LiffCore.appPath("reserve")
+          : "/reserve";
       return;
     }
     if (typeof liff !== "undefined" && liff.closeWindow) {
@@ -28,7 +32,9 @@ var LIFF_ID = "2010802590-KMkAidDs";
     return;
   }
 
-  liff.init({ liffId: LIFF_ID }).catch(function (err) {
-    console.error(err);
-  });
+  if (window.LiffCore) {
+    LiffCore.init().catch(function (err) {
+      console.error(err);
+    });
+  }
 })();

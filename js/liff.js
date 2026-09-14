@@ -1,5 +1,3 @@
-var LIFF_ID = "2010802590-KMkAidDs";
-
 (function () {
   var ReserveBtn = document.getElementById("reserve-submit");
 
@@ -8,8 +6,7 @@ var LIFF_ID = "2010802590-KMkAidDs";
   }
 
   function initLiff() {
-    liff
-      .init({ liffId: LIFF_ID })
+    LiffCore.init()
       .then(function () {
         if (!liff.isInClient()) {
           alert("LINEアプリから開いてください");
@@ -17,12 +14,8 @@ var LIFF_ID = "2010802590-KMkAidDs";
         }
 
         if (!liff.isLoggedIn()) {
-          liff.login();
+          LiffCore.login();
           return;
-        }
-
-        if (ReserveBtn) {
-          ReserveBtn.disabled = false;
         }
 
         return liff.getProfile();
@@ -36,13 +29,13 @@ var LIFF_ID = "2010802590-KMkAidDs";
       })
       .catch(function (err) {
         console.error(err);
-        notifyError("うまく接続できませんでした");
+        notifyError(LiffCore.formatError(err));
       });
   }
 
   if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
-    if (ReserveBtn) ReserveBtn.disabled = false;
-  } else {
+    /* 送信ボタンは reserve.js がカート状態で制御 */
+  } else if (window.LiffCore) {
     initLiff();
   }
 
@@ -51,6 +44,11 @@ var LIFF_ID = "2010802590-KMkAidDs";
       event.preventDefault();
       if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
         notifyError("ローカルでは送信できません。LINEアプリから開いてください。");
+        return;
+      }
+      var fabCount = document.getElementById("fab-count");
+      if (fabCount && (parseInt(fabCount.textContent, 10) || 0) <= 0) {
+        notifyError("カートが空です。商品を追加してください。");
         return;
       }
       var form = document.getElementById("reserve-form");
@@ -79,6 +77,10 @@ var LIFF_ID = "2010802590-KMkAidDs";
           var fab = document.getElementById("fab-count");
           return fab ? fab.textContent.trim() : "";
         })(),
+        note: (function () {
+          var el = document.getElementById("r-note");
+          return el ? el.value.trim() : "";
+        })(),
       };
 
       var messageText = window.LiffMessage
@@ -104,12 +106,14 @@ var LIFF_ID = "2010802590-KMkAidDs";
             localStorage.removeItem("oyakoko_reserve_cart_v2");
             localStorage.removeItem("oyakoko_reserve_cart_v1");
           } catch (e) {}
-          location.href = "/reserve-complete";
+          location.href = LiffCore.appPath("reserve-complete");
         })
         .catch(function (err) {
           console.error(err);
           notifyError("送信に失敗しました");
-          ReserveBtn.disabled = false;
+          if (window.updateReserveSubmitState) {
+            window.updateReserveSubmitState();
+          }
         });
     });
   }

@@ -2,14 +2,15 @@
 <html lang="ja" class="reserve-page">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>ログイン - 親孝行おにぎり</title>
     <meta
       name="description"
       content="おにぎりのWeb予約のためのLINEログインチェック"
     />
     <link rel="icon" href="images/logo.jpg" type="image/jpeg" />
-    <link rel="stylesheet" href="css/reserve.css" />
+    <link rel="stylesheet" href="css/reserve.css?v=20250904" />
   </head>
 
   <body class="line-entry-body">
@@ -18,13 +19,14 @@
       <h1 class="line-entry__title">ご予約ページへ</h1>
       <p class="line-entry__lead">LINEアプリからログインしてください。</p>
       <div class="liff-status liff-status--loading" id="entry-status" aria-live="polite">
-        <span class="liff-status__msg">ログインを確認しています…</span>
+        <span class="liff-status__msg">ログイン中です…</span>
       </div>
     </main>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="js/liff-env.js"></script>
-    <script src="js/liff-status-ui.js"></script>
-    <script src="js/line-entry.js"></script>
+    <script src="js/liff-env.js?v=20250904"></script>
+    <script src="js/liff-core.js?v=20250904"></script>
+    <script src="js/liff-status-ui.js?v=20250904"></script>
+    <script src="js/line-entry.js?v=20250904"></script>
   </body>
 </html>
