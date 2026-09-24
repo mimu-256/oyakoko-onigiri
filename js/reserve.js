@@ -48,7 +48,10 @@
     },
     {
       label: "その他",
-      note: "だし巻き玉子は3個入りです",
+      notes: [
+        "だし巻き玉子は3個入りです",
+        "お惣菜は前日までのご予約が必要です。",
+      ],
       items: [
         { id: "m017", name: "だし巻き玉子", price: 290, image: "だし巻き" },
         { id: "m018", name: "お惣菜", price: 550, image: "お惣菜.JPG" },
@@ -766,12 +769,12 @@
       h2.className = "reserve-group__title";
       h2.textContent = g.label;
       sec.appendChild(h2);
-      if (g.note) {
+      (g.notes || (g.note ? [g.note] : [])).forEach(function (text) {
         var groupNote = document.createElement("p");
         groupNote.className = "reserve-group__note";
-        groupNote.textContent = g.note;
+        groupNote.textContent = text;
         sec.appendChild(groupNote);
-      }
+      });
       var grid = document.createElement("div");
       grid.className = "reserve-grid";
       g.items.forEach(function (it) {
@@ -780,6 +783,12 @@
       sec.appendChild(grid);
       root.appendChild(sec);
     });
+  }
+
+  function menuModalNote(id) {
+    if (id === "m017") return "だし巻き玉子は3個入りです";
+    if (id === "m018") return "お惣菜は前日までのご予約が必要です。";
+    return "おにぎりは1つの価格です";
   }
 
   function buildMenuModalItems() {
@@ -791,6 +800,7 @@
           src: itemImage(item.id),
           title: item.name,
           price: money(item.price),
+          note: menuModalNote(item.id),
           getQty: (function (id) {
             return function () {
               return getQty(id);

@@ -6,6 +6,7 @@ window.MenuImageModal = (function () {
   var imgEl = null;
   var titleEl = null;
   var priceEl = null;
+  var noteEl = null;
   var closeBtn = null;
   var btnPrev = null;
   var btnNext = null;
@@ -80,6 +81,9 @@ window.MenuImageModal = (function () {
     priceEl = document.createElement("p");
     priceEl.className = "menu-image-modal__price";
 
+    noteEl = document.createElement("p");
+    noteEl.className = "menu-image-modal__note";
+
     stepperWrap = document.createElement("div");
     stepperWrap.className = "menu-image-modal__stepper reserve-stepper";
     stepperWrap.setAttribute("role", "group");
@@ -107,6 +111,7 @@ window.MenuImageModal = (function () {
 
     meta.appendChild(titleEl);
     meta.appendChild(priceEl);
+    meta.appendChild(noteEl);
     meta.appendChild(stepperWrap);
     panel.appendChild(closeBtn);
     panel.appendChild(viewport);
@@ -130,6 +135,13 @@ window.MenuImageModal = (function () {
     } else {
       priceEl.textContent = "";
       priceEl.hidden = true;
+    }
+    if (item.note) {
+      noteEl.textContent = item.note;
+      noteEl.hidden = false;
+    } else {
+      noteEl.textContent = "";
+      noteEl.hidden = true;
     }
     if (item.getQty && item.setQty) {
       stepperWrap.hidden = false;
