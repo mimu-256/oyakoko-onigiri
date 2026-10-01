@@ -6,7 +6,7 @@
   var GROUPS = [
     {
       label: "期間限定",
-      items: [{ id: "m001", name: "月見てりやきチキン（9月限定）", price: 360, image: "9_月見てりやきチキン.png" }],
+      items: [{ id: "m001", name: "秋の五目炊き込みおにぎり（10月限定）", price: 360 }],
     },
     {
       label: "420円",
