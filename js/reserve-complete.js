@@ -10,13 +10,8 @@
 
   function closePage() {
     if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
-      location.href = isBulk
-        ? window.LiffCore
-          ? LiffCore.appPath("reserve-bulk")
-          : "/reserve-bulk"
-        : window.LiffCore
-          ? LiffCore.appPath("reserve")
-          : "/reserve";
+      /* 大口一時中止: 完了画面からも通常予約へ */
+      location.href = window.LiffCore ? LiffCore.appPath("reserve") : "/line-entry/reserve";
       return;
     }
     if (typeof liff !== "undefined" && liff.closeWindow) {

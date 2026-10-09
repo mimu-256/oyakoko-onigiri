@@ -36,6 +36,15 @@
         ]
       },
       {
+        "source": "/index.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/line-entry.html",
         "headers": [
           {
@@ -74,16 +83,20 @@
     ],
     "rewrites": [
       {
+        "source": "/line-entry",
+        "destination": "/line-entry.html"
+      },
+      {
         "source": "/line-entry/reserve",
         "destination": "/reserve.html"
       },
       {
         "source": "/line-entry/reserve-bulk",
-        "destination": "/reserve-bulk.html"
+        "destination": "/reserve.html"
       },
       {
         "source": "/line-entry/reserve-bulk-checkout",
-        "destination": "/reserve-bulk-checkout.html"
+        "destination": "/reserve.html"
       },
       {
         "source": "/line-entry/reserve-complete",

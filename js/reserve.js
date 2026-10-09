@@ -6,7 +6,14 @@
   var GROUPS = [
     {
       label: "期間限定",
-      items: [{ id: "m001", name: "秋の五目炊き込みおにぎり（10月限定）", price: 360 }],
+      items: [
+        {
+          id: "m001",
+          name: "秋の五目炊き込みおにぎり（10月限定）",
+          price: 360,
+          image: "10_秋の五目炊き込みおにぎり.jpg",
+        },
+      ],
     },
     {
       label: "420円",
@@ -46,6 +53,7 @@
         { id: "m016", name: "こんぶ", price: 280 },
       ],
     },
+    /* その他 準備中
     {
       label: "その他",
       notes: [
@@ -57,6 +65,7 @@
         { id: "m018", name: "お惣菜", price: 550, image: "お惣菜.JPG" },
       ],
     },
+    */
   ];
 
   var BENTO_FIXED_ID = "m005";
@@ -416,15 +425,31 @@
   }
 
   var PICKUP_LAST_HOUR = 17;
+  var PICKUP_SCHEDULE_HINT = "平日 10:00〜 土日祝 7:00〜 水曜：定休日";
+
+  /** 土日祝は 7:00〜（YYYY-MM-DD で追加） */
+  var PICKUP_EARLY_OPEN_DATES = {
+    "2026-10-12": true,
+  };
 
   function isWeekendDate(d) {
     var day = d.getDay();
     return day === 0 || day === 6;
   }
 
+  function isHolidayPickupDate(d) {
+    return !!PICKUP_EARLY_OPEN_DATES[toDateInputString(d)];
+  }
+
+  function usesEarlyPickupHours(dateStr) {
+    if (!dateStr) return false;
+    var d = parseDateString(dateStr);
+    return isWeekendDate(d) || isHolidayPickupDate(d);
+  }
+
   function pickupHourMinForDate(dateStr) {
     if (!dateStr) return 10;
-    return isWeekendDate(parseDateString(dateStr)) ? 7 : 10;
+    return usesEarlyPickupHours(dateStr) ? 7 : 10;
   }
 
   function rebuildHourOptions(preferred) {
@@ -758,6 +783,21 @@
     }
   }
 
+  function appendOtherPreparingSection(parent) {
+    var sec = document.createElement("section");
+    sec.className = "reserve-group reserve-group--preparing";
+    sec.setAttribute("aria-label", "その他");
+    var h2 = document.createElement("h2");
+    h2.className = "reserve-group__title";
+    h2.textContent = "その他";
+    sec.appendChild(h2);
+    var p = document.createElement("p");
+    p.className = "reserve-group__preparing";
+    p.textContent = "準備中";
+    sec.appendChild(p);
+    parent.appendChild(sec);
+  }
+
   function renderMenu() {
     if (!root) return;
     root.innerHTML = "";
@@ -783,6 +823,7 @@
       sec.appendChild(grid);
       root.appendChild(sec);
     });
+    appendOtherPreparingSection(root);
   }
 
   function menuModalNote(id) {
@@ -1065,6 +1106,12 @@
   }
 
   loadCart();
+  // その他 準備中
+  if (cart.m017 || cart.m018) {
+    delete cart.m017;
+    delete cart.m018;
+    saveCart();
+  }
   // お弁当一時中止
   if (Object.keys(bentoCart).length) {
     bentoCart = {};
@@ -1133,14 +1180,9 @@
       }
     }
     if (dateHintEl) {
-      var timeHint =
-        "土日は7:00〜、平日は10:00〜でお選びください。水曜日は定休日のため選択肢に表示されません。";
-      if (hasBentoInCart()) {
-        dateHintEl.textContent =
-          "お弁当を含むご注文は2日後以降・1ヶ月以内でお選びください。" + timeHint;
-      } else {
-        dateHintEl.textContent = "本日から1ヶ月以内でお選びください。" + timeHint;
-      }
+      dateHintEl.textContent = hasBentoInCart()
+        ? "お弁当を含むご注文は2日後以降。" + PICKUP_SCHEDULE_HINT
+        : PICKUP_SCHEDULE_HINT;
     }
     rebuildHourOptions(hourIn ? hourIn.value : "");
   }
@@ -1159,8 +1201,8 @@
     if (!isValidPickupTime(dateIn.value, hourIn.value, minIn.value)) {
       var minHour = pickupHourMinForDate(dateIn.value);
       alert(
-        isWeekendDate(parseDateString(dateIn.value))
-          ? "土日は7:00〜" + PICKUP_LAST_HOUR + ":55でお選びください。"
+        usesEarlyPickupHours(dateIn.value)
+          ? "土日祝は7:00〜" + PICKUP_LAST_HOUR + ":55でお選びください。"
           : "平日は10:00〜" + PICKUP_LAST_HOUR + ":55でお選びください。"
       );
       rebuildHourOptions();

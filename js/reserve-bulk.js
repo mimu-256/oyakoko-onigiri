@@ -5,7 +5,14 @@
   var GROUPS = [
     {
       label: "期間限定",
-      items: [{ id: "m001", name: "秋の五目炊き込みおにぎり（10月限定）", price: 360 }],
+      items: [
+        {
+          id: "m001",
+          name: "秋の五目炊き込みおにぎり（10月限定）",
+          price: 360,
+          image: "10_秋の五目炊き込みおにぎり.jpg",
+        },
+      ],
     },
     {
       label: "420円",
@@ -45,6 +52,7 @@
         { id: "m016", name: "こんぶ", price: 280 },
       ],
     },
+    /* その他 準備中
     {
       label: "その他",
       notes: [
@@ -56,6 +64,7 @@
         { id: "m018", name: "お惣菜", price: 550, image: "お惣菜.JPG" },
       ],
     },
+    */
   ];
 
   var BENTO_FIXED_ID = "m005";
@@ -616,6 +625,21 @@
     }
   }
 
+  function appendOtherPreparingSection(parent) {
+    var sec = document.createElement("section");
+    sec.className = "reserve-group reserve-group--preparing";
+    sec.setAttribute("aria-label", "その他");
+    var h2 = document.createElement("h2");
+    h2.className = "reserve-group__title";
+    h2.textContent = "その他";
+    sec.appendChild(h2);
+    var p = document.createElement("p");
+    p.className = "reserve-group__preparing";
+    p.textContent = "準備中";
+    sec.appendChild(p);
+    parent.appendChild(sec);
+  }
+
   function renderMenu() {
     if (!root) return;
     root.innerHTML = "";
@@ -645,6 +669,7 @@
       sec.appendChild(grid);
       root.appendChild(sec);
     });
+    appendOtherPreparingSection(root);
   }
 
   function menuModalNote(id) {
@@ -941,7 +966,16 @@
     });
   }
 
+  // 大口一時中止（HTML 側も停止中）
+  if (!root) return;
+
   loadCart();
+  // その他 準備中
+  if (cart.m017 || cart.m018) {
+    delete cart.m017;
+    delete cart.m018;
+    saveCart();
+  }
   // お弁当一時中止
   if (Object.keys(bentoCart).length) {
     bentoCart = {};

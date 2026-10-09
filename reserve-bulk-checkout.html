@@ -2,6 +2,7 @@
 <html lang="ja" class="reserve-page">
   <head>
     <meta charset="utf-8" />
+    <script>location.replace("/line-entry/reserve");</script>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>お届け情報の入力 - 大口注文 - 親孝行おにぎり</title>
@@ -21,6 +22,14 @@
     <div class="site-content">
       <div class="container-content">
         <main id="main" class="content-area">
+          <p class="reserve-checkout-back">
+            <a href="/line-entry/reserve">← 通常のご予約へ</a>
+          </p>
+          <h1>大口注文（配送）</h1>
+          <p class="reserve-lead">
+            大口注文（配送）は<strong>現在一時停止</strong>しています。
+          </p>
+          <!-- 大口一時中止
           <p class="reserve-checkout-back">
             <a href="/line-entry/reserve-bulk">← カートに戻る</a>
           </p>
@@ -150,6 +159,7 @@
             </p>
             <button type="submit" class="reserve-form__submit" id="reserve-submit">注文内容を送信</button>
           </form>
+          -->
         </main>
       </div>
     </div>
@@ -160,6 +170,7 @@
       </div>
     </footer>
 
+    <!-- 大口一時中止
     <div class="delivery-slot-backdrop" id="delivery-slot-backdrop" aria-hidden="true"></div>
     <div
       class="delivery-slot-modal"
@@ -202,8 +213,9 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="js/reserve-bulk-checkout.js?v=20250915" defer></script>
     <script src="js/liff-env.js?v=20250904" defer></script>
-    <script src="js/liff-core.js?v=20250904" defer></script>
+    <script src="js/liff-core.js?v=20251009" defer></script>
     <script src="js/liff-message.js?v=20250904" defer></script>
     <script src="js/liff-bulk.js?v=20250915" defer></script>
+    -->
   </body>
 </html>

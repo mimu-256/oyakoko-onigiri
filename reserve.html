@@ -15,16 +15,18 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
     <link rel="stylesheet" href="css/style.css?v=20250904" />
-    <link rel="stylesheet" href="css/reserve.css?v=20250922" />
+    <link rel="stylesheet" href="css/reserve.css?v=20251009c" />
   </head>
   <body class="reserve-body">
     <div class="site-content">
       <div class="container-content">
         <main id="main" class="content-area">
           <h1>ご予約</h1>
+          <!-- 大口一時中止
           <p class="reserve-alt-link">
             <a href="/line-entry/reserve-bulk">大口注文（配送）をご希望の方はこちら</a>
           </p>
+          -->
           <!-- ーーーーーーーーーーTODO 削除 -->
           <!-- <p>
             <button type="button" id="liff-test-btn" disabled>LIFFテスト送信</button>
@@ -158,7 +160,7 @@
         <p>
           <label for="r-date">受取希望日 <span class="req" aria-label="必須">＊</span></label>
           <select name="pickup_date" id="r-date" required aria-describedby="r-date-hint"></select>
-          <span class="reserve-date-hint" id="r-date-hint">本日から1ヶ月以内でお選びください。土日は7:00〜、平日は10:00〜。水曜日は定休日です。</span>
+          <span class="reserve-date-hint" id="r-date-hint">平日 10:00〜 土日祝 7:00〜 水曜：定休日</span>
         </p>
         <fieldset class="reserve-form__fieldset">
           <legend>受取希望時間 <span class="req" aria-label="必須">＊</span></legend>
@@ -200,6 +202,7 @@
               </select>
             </div>
           </div>
+          <p class="reserve-time-hint">原則お受け取りの30分前までのご予約お願いします！</p>
         </fieldset>
         <p>
           <label for="r-note">ご要望・メモ（任意）</label>
@@ -221,9 +224,9 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="js/menu-image-modal.js?v=20250922" defer></script>
-    <script src="js/reserve.js?v=20251001" defer></script>
+    <script src="js/reserve.js?v=20251009f" defer></script>
     <script src="js/liff-env.js?v=20250904" defer></script>
-    <script src="js/liff-core.js?v=20250904" defer></script>
+    <script src="js/liff-core.js?v=20251009" defer></script>
     <script src="js/liff-message.js?v=20250904" defer></script>
     <script src="js/liff.js?v=20250911" defer></script>
 

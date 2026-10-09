@@ -2,6 +2,7 @@
 <html lang="ja" class="reserve-page">
   <head>
     <meta charset="utf-8" />
+    <script>location.replace("/line-entry/reserve");</script>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>大口注文（配送） - 親孝行おにぎり</title>
@@ -26,19 +27,24 @@
             <a href="/line-entry/reserve">通常のご予約（来店受取）はこちら</a>
           </p>
           <p class="reserve-lead">
+            大口注文（配送）は<strong>現在一時停止</strong>しています。<br />
+            通常のご予約は<a href="/line-entry/reserve">こちら</a>からお願いします。
+          </p>
+          <!-- 大口一時中止
+          <p class="reserve-lead">
             <strong>おにぎり20個以上</strong>からご注文いただけます。<br />
             配達をご希望の場合は<strong>鴻巣市内のみ配達可</strong>（配達無料）です。<br />
             市外の方はLINEのチャットにてご相談ください。<br />
             <strong>お支払いは配達時にお願いします。</strong>
           </p>
-          <!-- お弁当一時中止
           <div id="reserve-bento-root"></div>
-          -->
           <div id="reserve-menu-root"></div>
+          -->
         </main>
       </div>
     </div>
 
+    <!-- 大口一時中止
     <div class="reserve-fab" id="reserve-fab">
       <button
         type="button"
@@ -137,14 +143,17 @@
       </div>
       </div>
     </div>
+    -->
 
     <footer class="site-bottom">
       <div class="site-bottom-content">
         <p>© 2026 親孝行おにぎり</p>
       </div>
     </footer>
+    <!-- 大口一時中止
     <script src="js/menu-image-modal.js?v=20250922" defer></script>
     <script src="js/reserve-bulk.js?v=20251001" defer></script>
+    -->
 
 
   </body>

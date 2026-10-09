@@ -2,6 +2,43 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
+    <script>
+      /* LIFF（Endpoint=/）: トップに着地したら予約入口へ。通常のブラウザ閲覧はそのまま */
+      (function () {
+        var path = location.pathname;
+        if (path !== "/" && path !== "/index.html") return;
+        var search = location.search || "";
+        if (search) {
+          try {
+            var state = new URLSearchParams(search).get("liff.state");
+            if (state) {
+              var dest = decodeURIComponent(state);
+              if (dest.charAt(0) !== "/") dest = "/" + dest;
+              location.replace(dest + search + location.hash);
+              return;
+            }
+          } catch (e) {}
+          if (/(?:^|[?&])liff/i.test(search)) {
+            location.replace("/line-entry" + search + location.hash);
+            return;
+          }
+        }
+        var ua = navigator.userAgent || "";
+        if (!/\bLine\//i.test(ua)) return;
+        var s = document.createElement("script");
+        s.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+        s.onload = function () {
+          ["js/liff-env.js?v=20251009", "js/liff-core.js?v=20251009", "js/liff-top-bootstrap.js?v=20251009"].forEach(
+            function (src) {
+              var el = document.createElement("script");
+              el.src = src;
+              document.head.appendChild(el);
+            }
+          );
+        };
+        document.head.appendChild(s);
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>メニュー｜親孝行おにぎり</title>
     <meta
@@ -155,10 +192,14 @@
             </div>
 
             <div class="menu-block">
+              <h2 class="menu-block__heading">その他</h2>
+              <p class="menu__preparing">準備中</p>
+              <!-- その他 準備中
               <ul class="menu">
                 <li class="item"><span class="name">だし巻き玉子</span><span class="price">290円</span></li>
                 <li class="item"><span class="name">お惣菜</span><span class="price">550円</span></li>
               </ul>
+              -->
             </div>
 
             <p class="menu__note">

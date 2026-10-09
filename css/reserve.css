@@ -585,6 +585,13 @@ body.bento-modal-open {
   line-height: 1.5;
 }
 
+.reserve-group__preparing {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.5;
+}
+
 .reserve-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

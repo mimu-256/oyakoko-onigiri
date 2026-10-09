@@ -1,5 +1,5 @@
 window.LiffCore = {
-  LIFF_ID: "2010802590-KMkAidDs",
+  LIFF_ID: "2011941067-G1JIcyJa",
   ENTRY_PATH: "/line-entry",
 
   entryUrl: function () {
