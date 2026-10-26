@@ -10,4 +10,9 @@ window.LiffEnv = {
     if (!this.isLocalDev()) return false;
     return !/[?&]liff=1(?:&|$)/.test(location.search);
   },
+
+  /** LINEアプリ内ブラウザ（LIFF URL 以外の https リンク含む） */
+  isLineAppBrowser: function () {
+    return /\bLine\//i.test(navigator.userAgent || "");
+  },
 };

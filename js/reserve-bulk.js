@@ -52,7 +52,6 @@
         { id: "m016", name: "こんぶ", price: 280 },
       ],
     },
-    /* その他 準備中
     {
       label: "その他",
       notes: [
@@ -60,12 +59,13 @@
         "お惣菜は前日までのご予約が必要です。",
       ],
       items: [
-        { id: "m017", name: "だし巻き玉子", price: 290, image: "だし巻き" },
+        { id: "m017", name: "だし巻き玉子", price: 290, image: "だしまき" },
         { id: "m018", name: "お惣菜", price: 550, image: "お惣菜.JPG" },
       ],
     },
-    */
   ];
+
+  var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true };
 
   var BENTO_FIXED_ID = "m005";
   var BENTO_LABEL = "お弁当";
@@ -89,6 +89,8 @@
   };
 
   var MIN_ONIGIRI_QTY = 20;
+  var MIN_SIDE_DISH_QTY = 5;
+  var SIDE_DISH_ITEM_ID = "m018";
 
   var cart = {};
   var bentoCart = {};
@@ -254,17 +256,29 @@
     return n;
   }
 
+  function isOnigiriCartItem(id) {
+    return !ORDER_OTHER_ITEM_IDS[id];
+  }
+
   function totalOnigiriQty() {
     var n = 0;
     Object.keys(cart).forEach(function (id) {
       var q = cart[id];
-      if (q > 0) n += q;
+      if (q > 0 && isOnigiriCartItem(id)) n += q;
     });
     return n;
   }
 
+  function totalSideDishQty() {
+    return getQty(SIDE_DISH_ITEM_ID);
+  }
+
+  function meetsBulkMinimum() {
+    return totalOnigiriQty() >= MIN_ONIGIRI_QTY || totalSideDishQty() >= MIN_SIDE_DISH_QTY;
+  }
+
   function canSubmitBulk() {
-    return totalOnigiriQty() >= MIN_ONIGIRI_QTY;
+    return meetsBulkMinimum();
   }
 
   function money(n) {
@@ -669,7 +683,6 @@
       sec.appendChild(grid);
       root.appendChild(sec);
     });
-    appendOtherPreparingSection(root);
   }
 
   function menuModalNote(id) {
@@ -917,9 +930,12 @@
     if (cartFooter) cartFooter.hidden = !has;
     var bulkMinHint = document.getElementById("bulk-min-hint");
     var bulkOnigiriCount = document.getElementById("bulk-onigiri-count");
+    var bulkSideCount = document.getElementById("bulk-side-count");
     var onigiriQty = totalOnigiriQty();
+    var sideQty = totalSideDishQty();
     if (bulkOnigiriCount) bulkOnigiriCount.textContent = String(onigiriQty);
-    if (bulkMinHint) bulkMinHint.hidden = !has || onigiriQty >= MIN_ONIGIRI_QTY;
+    if (bulkSideCount) bulkSideCount.textContent = String(sideQty);
+    if (bulkMinHint) bulkMinHint.hidden = !has || meetsBulkMinimum();
     if (checkoutBtn) checkoutBtn.disabled = !canSubmitBulk();
   }
 
@@ -966,23 +982,13 @@
     });
   }
 
-  // 大口一時中止（HTML 側も停止中）
   if (!root) return;
 
   loadCart();
-  // その他 準備中
-  if (cart.m017 || cart.m018) {
-    delete cart.m017;
-    delete cart.m018;
-    saveCart();
-  }
-  // お弁当一時中止
   if (Object.keys(bentoCart).length) {
     bentoCart = {};
+    saveCart();
   }
-  saveCart();
-  // renderBentoSection();
-  // initBentoModal();
   renderMenu();
   sync();
 

@@ -157,6 +157,7 @@ window.MenuImageModal = (function () {
     var q = currentOpts.getQty();
     qtyEl.textContent = String(q);
     btnMinus.disabled = q <= 0;
+    btnPlus.disabled = !!currentOpts.soldOut;
   }
 
   function updateNav() {

@@ -109,7 +109,7 @@
         return;
       }
       if (window.canSubmitBulkOrder && !window.canSubmitBulkOrder()) {
-        alert("おにぎりは20個以上ご注文ください。");
+        alert("お惣菜5個以上、またはおにぎり20個以上でご注文ください。");
         return;
       }
       if (window.validateBulkCheckout && !window.validateBulkCheckout()) {

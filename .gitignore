@@ -16,3 +16,16 @@ firebase-debug.*.log
 Thumbs.db
 *.log
 Untitled-*.png
+
+# Square ローカル検証（トークン・出力の置き場）
+scripts/square-verify/.local/
+scripts/square-verify/*.token
+scripts/square-verify/*.env
+
+# 予約 API Worker（秘密鍵・ローカル設定）
+workers/reserve-orders-api/wrangler.toml
+workers/reserve-orders-api/.dev.vars
+workers/reserve-orders-api/.wrangler/
+
+# ローカル依存・テスト出力
+node_modules/

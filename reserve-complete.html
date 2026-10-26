@@ -7,25 +7,45 @@
     <title>ご予約完了 - 親孝行おにぎり</title>
     <meta name="description" content="ご予約・ご注文が完了しました" />
     <link rel="icon" href="images/logo.jpg" type="image/jpeg" />
-    <link rel="stylesheet" href="css/reserve.css?v=20250910" />
+    <link rel="stylesheet" href="css/reserve.css?v=20251017e" />
   </head>
 
   <body class="line-entry-body line-entry-body--complete">
     <main class="line-entry line-entry--complete">
       <div class="line-entry__main">
         <img class="line-entry__logo" src="images/logo.jpg" alt="親孝行おにぎり" width="88" height="88" />
+        <div class="line-entry__spinner" id="complete-spinner" hidden aria-hidden="true"></div>
         <h1 class="line-entry__title" id="complete-title">ご予約ありがとうございます！</h1>
-        <p class="line-entry__lead">
-          <span class="line-entry__lead-line">LINEトークに内容をお送りしました。</span>
-          <span class="line-entry__lead-line">トークをご確認ください。</span>
+        <p class="line-entry__lead" id="complete-lead">
+          <span class="line-entry__lead-line" id="complete-lead-a">LINEトークに内容をお送りしました。</span>
+          <span class="line-entry__lead-line" id="complete-lead-b">トークをご確認ください。</span>
         </p>
+        <p class="line-entry__error" id="complete-error" role="alert" hidden></p>
       </div>
-      <button type="button" class="reserve-form__submit line-entry__action" id="complete-close">閉じる</button>
+      <div class="line-entry__footer" id="complete-footer">
+        <button type="button" class="reserve-form__submit line-entry__action" id="complete-retry" hidden>
+          もう一度送信
+        </button>
+        <button
+          type="button"
+          class="reserve-form__submit line-entry__action line-entry__action--secondary"
+          id="complete-back"
+          hidden
+        >
+          予約画面に戻る
+        </button>
+        <button type="button" class="reserve-form__submit line-entry__action" id="complete-close">閉じる</button>
+      </div>
     </main>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="js/order-api-config.js?v=20261017-api1"></script>
+    <script src="js/reserve-order-idempotency.js?v=20251017i"></script>
+    <script src="js/reserve-order-payload.js?v=20251017i"></script>
+    <script src="js/reserve-order-client.js?v=20251017i"></script>
     <script src="js/liff-env.js?v=20250904"></script>
     <script src="js/liff-core.js?v=20251009"></script>
-    <script src="js/reserve-complete.js?v=20250904"></script>
+    <script src="js/liff-message.js?v=20251017i"></script>
+    <script src="js/reserve-complete.js?v=20251017i"></script>
   </body>
 </html>

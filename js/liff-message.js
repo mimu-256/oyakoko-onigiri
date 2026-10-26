@@ -36,6 +36,7 @@ window.LiffMessage = {
       "日時：" + this.formatDateTime(info.date, info.hour, info.min),
       "",
       "ご注文：\n" + (info.order || ""),
+      "",
       this.formatSubtotal(info.count, info.total)
     );
     if (info.note) {

@@ -39,10 +39,14 @@ window.DeliverySchedule = (function () {
   function initDateBounds() {
     var today = new Date();
     today.setHours(0, 0, 0, 0);
+    var lead = config && config.orderLeadDays != null ? Number(config.orderLeadDays) : 2;
+    var maxDays = config && config.orderMaxDays != null ? Number(config.orderMaxDays) : 31;
+    if (!Number.isFinite(lead) || lead < 0) lead = 2;
+    if (!Number.isFinite(maxDays) || maxDays < 1) maxDays = 31;
     minDate = cloneDate(today);
-    minDate.setDate(minDate.getDate() + 2);
+    minDate.setDate(minDate.getDate() + lead);
     maxDate = cloneDate(today);
-    maxDate.setMonth(maxDate.getMonth() + 1);
+    maxDate.setDate(maxDate.getDate() + maxDays);
   }
 
   function isWithinOrderRange(dateStr) {
@@ -65,6 +69,7 @@ window.DeliverySchedule = (function () {
     if (!config) return null;
     if (config.closedDates && config.closedDates.indexOf(dateStr) !== -1) return null;
     var override = config.dateOverrides && config.dateOverrides[dateStr];
+    if (override && override.closed) return null;
     var base = config.defaultShift;
     if (!base && !override) return null;
     return {
@@ -121,6 +126,10 @@ window.DeliverySchedule = (function () {
     return set;
   }
 
+  function isSlotManuallyClosed(key) {
+    return !!(config && config.closedSlotKeys && config.closedSlotKeys.indexOf(key) !== -1);
+  }
+
   function isSlotAvailable(dateStr, hour, min) {
     if (!isWithinOrderRange(dateStr)) return false;
     var daySlots = getDaySlots(dateStr);
@@ -130,6 +139,7 @@ window.DeliverySchedule = (function () {
       return s.key === key;
     });
     if (!exists) return false;
+    if (isSlotManuallyClosed(key)) return false;
     var blocked = getAllBlockedKeys();
     return !blocked[key];
   }
@@ -170,6 +180,44 @@ window.DeliverySchedule = (function () {
     return firebase.firestore();
   }
 
+  var configWatchStarted = false;
+
+  function applyConfigData(data, silent) {
+    if (!data) return;
+    config = {
+      slotMinutes: data.slotMinutes || SLOT_MINUTES,
+      blockAdjacent: data.blockAdjacent != null ? data.blockAdjacent : BLOCK_ADJACENT,
+      defaultShift: data.defaultShift,
+      closedDates: data.closedDates || [],
+      dateOverrides: data.dateOverrides || {},
+      closedSlotKeys: data.closedSlotKeys || [],
+      orderLeadDays: data.orderLeadDays != null ? data.orderLeadDays : 2,
+      orderMaxDays: data.orderMaxDays != null ? data.orderMaxDays : 31,
+    };
+    BLOCK_ADJACENT = config.blockAdjacent;
+    SLOT_MINUTES = config.slotMinutes || SLOT_MINUTES;
+    initDateBounds();
+    if (!silent) {
+      try {
+        window.dispatchEvent(new CustomEvent("delivery-config-updated"));
+      } catch (e) {}
+    }
+  }
+
+  function startConfigWatch() {
+    if (!db || configWatchStarted) return;
+    configWatchStarted = true;
+    db
+      .collection("delivery_config")
+      .doc("default")
+      .onSnapshot(
+        function (doc) {
+          if (doc.exists) applyConfigData(doc.data());
+        },
+        function () {}
+      );
+  }
+
   function loadConfigFromJson() {
     return fetch(CONFIG_URL, { cache: "no-store" })
       .then(function (res) {
@@ -177,14 +225,7 @@ window.DeliverySchedule = (function () {
         return res.json();
       })
       .then(function (data) {
-        config = {
-          slotMinutes: data.slotMinutes || SLOT_MINUTES,
-          blockAdjacent: data.blockAdjacent != null ? data.blockAdjacent : BLOCK_ADJACENT,
-          defaultShift: data.defaultShift,
-          closedDates: data.closedDates || [],
-          dateOverrides: data.dateOverrides || {},
-        };
-        BLOCK_ADJACENT = config.blockAdjacent;
+        applyConfigData(data, true);
         if (!db && data.bookings) {
           bookings = data.bookings.map(normalizeBooking).filter(Boolean);
         }
@@ -217,15 +258,8 @@ window.DeliverySchedule = (function () {
       .get()
       .then(function (doc) {
         if (!doc.exists) return false;
-        var data = doc.data();
-        config = {
-          slotMinutes: data.slotMinutes || SLOT_MINUTES,
-          blockAdjacent: data.blockAdjacent != null ? data.blockAdjacent : BLOCK_ADJACENT,
-          defaultShift: data.defaultShift,
-          closedDates: data.closedDates || [],
-          dateOverrides: data.dateOverrides || {},
-        };
-        BLOCK_ADJACENT = config.blockAdjacent;
+        applyConfigData(doc.data(), true);
+        startConfigWatch();
         return true;
       })
       .catch(function () {
@@ -234,7 +268,6 @@ window.DeliverySchedule = (function () {
   }
 
   function load() {
-    initDateBounds();
     db = initFirestore();
     var chain = Promise.resolve();
     if (db) {
@@ -247,6 +280,9 @@ window.DeliverySchedule = (function () {
         })
         .then(function () {
           return loadBookingsFromFirestore();
+        })
+        .then(function () {
+          startConfigWatch();
         });
     } else {
       chain = chain
@@ -303,6 +339,9 @@ window.DeliverySchedule = (function () {
           });
           if (!inShift || !isWithinOrderRange(ds)) {
             return { date: ds, hour: t.hour, min: t.min, status: "closed" };
+          }
+          if (isSlotManuallyClosed(key)) {
+            return { date: ds, hour: t.hour, min: t.min, status: "manual-off", key: key };
           }
           if (blocked[key]) {
             return { date: ds, hour: t.hour, min: t.min, status: "blocked" };
@@ -397,8 +436,26 @@ window.DeliverySchedule = (function () {
     return !!db;
   }
 
+  function getConfigSnapshot() {
+    if (!config) return null;
+    return {
+      slotMinutes: config.slotMinutes,
+      blockAdjacent: config.blockAdjacent,
+      defaultShift: config.defaultShift,
+      closedDates: (config.closedDates || []).slice(),
+      dateOverrides: JSON.parse(JSON.stringify(config.dateOverrides || {})),
+      closedSlotKeys: (config.closedSlotKeys || []).slice(),
+      orderLeadDays: config.orderLeadDays,
+      orderMaxDays: config.orderMaxDays,
+    };
+  }
+
   return {
     load: load,
+    applyRemoteConfig: function (data) {
+      applyConfigData(data);
+    },
+    getConfigSnapshot: getConfigSnapshot,
     refreshBookings: refreshBookings,
     getMinDate: getMinDate,
     getMaxDate: getMaxDate,

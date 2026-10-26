@@ -5,7 +5,15 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "workers/**",
+      "scripts/**",
+      "docs/**",
+      "shared/**",
+      "firestore.rules",
+      "**/*.log",
+      "**/*.md",
+      "package*.json"
     ],
     "headers": [
       {
@@ -63,6 +71,33 @@
         ]
       },
       {
+        "source": "/stock-a8f3k9m2p7q1w4n6r0t5v.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/line-entry/news/side-dish.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/delivery-cfg-k8m3p2w9.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/js/**",
         "headers": [
           {
@@ -79,6 +114,24 @@
             "value": "public, max-age=300, must-revalidate"
           }
         ]
+      },
+      {
+        "source": "/reserve",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/js/order-api-config.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
       }
     ],
     "rewrites": [
@@ -92,19 +145,29 @@
       },
       {
         "source": "/line-entry/reserve-bulk",
-        "destination": "/reserve.html"
+        "destination": "/reserve-bulk.html"
       },
       {
         "source": "/line-entry/reserve-bulk-checkout",
-        "destination": "/reserve.html"
+        "destination": "/reserve-bulk-checkout.html"
       },
       {
         "source": "/line-entry/reserve-complete",
         "destination": "/reserve-complete.html"
+      },
+      {
+        "source": "/line-entry/news/side-dish",
+        "destination": "/line-entry/news/side-dish.html"
       }
     ]
   },
   "firestore": {
     "rules": "firestore.rules"
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "singleProjectMode": true
   }
 }

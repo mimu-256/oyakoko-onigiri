@@ -36,8 +36,8 @@
         return;
       }
 
-      setStatus("ご予約ページへ移動します…", { state: "loading" });
-      location.replace(LiffCore.appPath("reserve"));
+      setStatus("ページへ移動します…", { state: "loading" });
+      location.replace(LiffCore.resolvePostLoginPath());
     })
     .catch(function (err) {
       console.error(err);

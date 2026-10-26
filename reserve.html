@@ -15,18 +15,17 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
     <link rel="stylesheet" href="css/style.css?v=20250904" />
-    <link rel="stylesheet" href="css/reserve.css?v=20251009c" />
+    <link rel="stylesheet" href="css/reserve.css?v=20251017h" />
   </head>
   <body class="reserve-body">
     <div class="site-content">
       <div class="container-content">
         <main id="main" class="content-area">
           <h1>ご予約</h1>
-          <!-- 大口一時中止
-          <p class="reserve-alt-link">
-            <a href="/line-entry/reserve-bulk">大口注文（配送）をご希望の方はこちら</a>
+          <p class="reserve-today-hours" id="reserve-today-hours" hidden></p>
+          <p class="reserve-alt-link" id="reserve-bulk-local-link" hidden>
+            <a href="/line-entry/reserve-bulk">大口注文（配送）ローカルプレビュー</a>
           </p>
-          -->
           <!-- ーーーーーーーーーーTODO 削除 -->
           <!-- <p>
             <button type="button" id="liff-test-btn" disabled>LIFFテスト送信</button>
@@ -211,6 +210,7 @@
         <p class="reserve-form__note">
           内容は目安です。在庫・混雑によりご希望に沿えない場合、担当よりご連絡する場合がございます。送信前にカートの品目数をご確認ください。
         </p>
+        <p class="reserve-soldout-conflict" id="r-soldout-conflict-submit" role="alert" hidden></p>
         <button type="submit" class="reserve-form__submit" id="reserve-submit" disabled>予約内容を送信</button>
       </form>
       </div>
@@ -223,12 +223,20 @@
     </footer>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="js/menu-image-modal.js?v=20250922" defer></script>
-    <script src="js/reserve.js?v=20251009f" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js?v=20251011c"></script>
+    <script src="js/menu-availability.js?v=20251011c" defer></script>
+    <script src="js/menu-image-modal.js?v=20251011c" defer></script>
+    <script src="js/order-api-config.js?v=20261017-api1"></script>
+    <script src="js/reserve-order-idempotency.js?v=20251017i"></script>
+    <script src="js/reserve-order-payload.js?v=20251017i"></script>
+    <script src="js/reserve-order-client.js?v=20251017i"></script>
+    <script src="js/reserve.js?v=20251026u" defer></script>
     <script src="js/liff-env.js?v=20250904" defer></script>
-    <script src="js/liff-core.js?v=20251009" defer></script>
-    <script src="js/liff-message.js?v=20250904" defer></script>
-    <script src="js/liff.js?v=20250911" defer></script>
+    <script src="js/liff-core.js?v=20251026a" defer></script>
+    <script src="js/liff-message.js?v=20251017i" defer></script>
+    <script src="js/liff.js?v=20251026a" defer></script>
 
 
   </body>

@@ -1,6 +1,8 @@
 {
   "slotMinutes": 30,
   "blockAdjacent": 1,
+  "orderLeadDays": 2,
+  "orderMaxDays": 31,
   "defaultShift": {
     "startHour": 10,
     "startMin": 0,
@@ -9,5 +11,6 @@
   },
   "closedDates": [],
   "dateOverrides": {},
+  "closedSlotKeys": [],
   "bookings": []
 }

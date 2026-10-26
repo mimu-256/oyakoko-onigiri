@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>売り切れ設定</title>
+    <link rel="stylesheet" href="css/menu-admin.css?v=20251011e" />
+  </head>
+  <body class="menu-admin-body">
+    <div class="menu-admin">
+      <p class="menu-admin__status" id="admin-status" aria-live="assertive" hidden></p>
+      <div class="menu-admin__panel" id="admin-app">
+        <div id="admin-menu-list"></div>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js?v=20251011c"></script>
+    <script src="js/menu-catalog.js?v=20251011c"></script>
+    <script src="js/menu-availability.js?v=20251011c"></script>
+    <script src="js/menu-admin.js?v=20251011d"></script>
+  </body>
+</html>

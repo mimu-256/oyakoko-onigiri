@@ -1,0 +1,110 @@
+body.delivery-admin-body {
+  margin: 0;
+  padding: 0;
+  font-family: "MS PGothic", "ＭＳ Ｐゴシック", Meiryo, "メイリオ", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #111;
+  background: #f3f4f6;
+}
+
+.delivery-admin {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 10px 24px;
+}
+
+.delivery-admin__head h1 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.delivery-admin__status {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 8px;
+}
+
+.delivery-admin__status[hidden] {
+  display: none;
+}
+
+.delivery-admin__status--ok {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.delivery-admin__grid-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.delivery-admin__grid-head {
+  position: relative;
+  padding-top: 8px;
+}
+
+.delivery-admin__grid-body {
+  max-height: none;
+  padding-bottom: 16px;
+}
+
+.delivery-admin__day-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 0.65rem;
+  font-weight: normal;
+  color: #374151;
+}
+
+.delivery-admin__day-toggle input {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.delivery-admin__slot-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin: 0;
+  min-height: 2rem;
+  cursor: pointer;
+}
+
+.delivery-admin__slot-check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.delivery-admin__slot-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #db2777;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.delivery-admin__slot-check input:focus-visible + .delivery-admin__slot-mark {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+.delivery-admin__slot-check input:not(:checked) + .delivery-admin__slot-mark {
+  color: #9ca3af;
+}

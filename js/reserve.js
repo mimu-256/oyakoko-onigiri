@@ -5,13 +5,19 @@
 
   var GROUPS = [
     {
-      label: "期間限定",
+      label: "限定",
       items: [
         {
           id: "m001",
-          name: "秋の五目炊き込みおにぎり（10月限定）",
+          name: "秋の五目炊き込みおにぎり\n(10月限定)",
           price: 360,
           image: "10_秋の五目炊き込みおにぎり.jpg",
+        },
+        {
+          id: "m019",
+          name: "高菜明太\n(モバイルオーダー限定)",
+          price: 300,
+          image: "8_高菜明太.jpg",
         },
       ],
     },
@@ -53,20 +59,45 @@
         { id: "m016", name: "こんぶ", price: 280 },
       ],
     },
-    /* その他 準備中
     {
       label: "その他",
-      notes: [
-        "だし巻き玉子は3個入りです",
-        "お惣菜は前日までのご予約が必要です。",
-      ],
+      anchorId: "reserve-other",
       items: [
-        { id: "m017", name: "だし巻き玉子", price: 290, image: "だし巻き" },
-        { id: "m018", name: "お惣菜", price: 550, image: "お惣菜.JPG" },
+        /* お惣菜 m018・唐揚げ m020 は本番非表示（ローカルでは applyLocalOtherMenuExtras） */
+        { id: "m017", name: "だし巻き玉子", price: 290, image: "だしまき" },
       ],
     },
-    */
   ];
+
+  function isLocalPreviewHost() {
+    var h = location.hostname;
+    if (/^(localhost|127\.0\.0\.1)$/.test(h)) return true;
+    return /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h);
+  }
+
+  function applyLocalOtherMenuExtras() {
+    if (!isLocalPreviewHost()) return;
+    GROUPS.forEach(function (g) {
+      if (g.label !== "その他") return;
+      g.notes = [{ newsHref: "/line-entry/news/side-dish", lineOnly: true }];
+      g.items = [
+        { id: "m018", name: "お惣菜セット", price: 550, image: "お惣菜.JPG" },
+        { id: "m020", name: "唐揚げ", price: 550, image: "karaage.jpg" },
+        { id: "m017", name: "だし巻き玉子", price: 290, image: "だしまき" },
+      ];
+    });
+  }
+
+  applyLocalOtherMenuExtras();
+
+  /** ご注文テキストではおにぎりの後に並べる（その他・準備中品も含む） */
+  var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true, m020: true };
+  var MIN_QTY_SIDE_DISH = 5;
+  var SIDE_DISH_MIN_ITEM_IDS = { m018: true, m020: true };
+
+  function requiresMinFive(id) {
+    return !!SIDE_DISH_MIN_ITEM_IDS[id];
+  }
 
   var BENTO_FIXED_ID = "m005";
   var BENTO_LABEL = "お弁当";
@@ -181,6 +212,7 @@
     if (q <= 0) delete bentoCart[choiceId];
     else bentoCart[choiceId] = q;
     saveCart();
+    if (window.ReserveOrderIdempotency) ReserveOrderIdempotency.markCartChanged();
     sync();
   }
 
@@ -236,7 +268,7 @@
   function getBentoChoiceItems() {
     return getAllMenuItems()
       .filter(function (it) {
-        return it.id !== "m017" && it.id !== "m018";
+        return it.id !== "m017" && it.id !== "m018" && it.id !== "m020";
       })
       .slice()
       .sort(function (a, b) {
@@ -311,11 +343,121 @@
     return cart[id] > 0 ? cart[id] : 0;
   }
 
+  function itemSoldOutMessage(id) {
+    var it = ITEM_MAP[id];
+    if (!it || !it.soldOut) return "";
+    return it.soldOutMessage || "申し訳ございません。\n本日売り切れです。";
+  }
+
+  /** 売り切れが受取日に効くのは「本日受取」のみ（明日以降は予約可） */
+  function soldOutAppliesToPickupDate(dateStr) {
+    if (!dateStr) return false;
+    return dateStr === toDateInputString(new Date());
+  }
+
+  function cartSoldOutConflictsForDate(dateStr) {
+    if (!soldOutAppliesToPickupDate(dateStr)) return [];
+    var ids = [];
+    Object.keys(cart).forEach(function (id) {
+      if (cart[id] > 0 && itemSoldOutMessage(id)) ids.push(id);
+    });
+    return ids;
+  }
+
+  function soldOutConflictMessage(dateStr) {
+    var ids = cartSoldOutConflictsForDate(dateStr);
+    if (!ids.length) return "";
+    var names = ids.map(function (id) {
+      return ITEM_MAP[id] ? ITEM_MAP[id].name : id;
+    });
+    return (
+      "本日お受け取りの場合、" +
+      names.join("、") +
+      "は売り切れのためご注文いただけません。受取日を変えるか、カートから外してください。"
+    );
+  }
+
+  function dashimakiBlockedForPickupDate(dateStr) {
+    if (!dateStr || getQty(DASHIMAKI_ITEM_ID) <= 0) return false;
+    return !!DASHIMAKI_UNAVAILABLE_PICKUP_DATES[dateStr];
+  }
+
+  var DASHIMAKI_CONFLICT_MESSAGE =
+    "大変申し訳ございません。\n" +
+    "10/17, 18のお受け取りでは、だし巻き玉子のご予約をお休みしています。\n" +
+    "受取日を変更するか、カートから外してください。";
+
+  function dashimakiConflictMessage(dateStr) {
+    if (!dashimakiBlockedForPickupDate(dateStr)) return "";
+    return DASHIMAKI_CONFLICT_MESSAGE;
+  }
+
+  function cartPickupConflictMessage(dateStr) {
+    var sold = soldOutConflictMessage(dateStr);
+    if (sold) return sold;
+    return dashimakiConflictMessage(dateStr);
+  }
+
+  function hasCartPickupConflict(dateStr) {
+    if (!dateStr) return false;
+    return (
+      cartSoldOutConflictsForDate(dateStr).length > 0 ||
+      dashimakiBlockedForPickupDate(dateStr)
+    );
+  }
+
+  var soldOutConflictEl = null;
+
+  function updateSoldOutConflictUi() {
+    if (!soldOutConflictEl || !dateIn) return;
+    var msg = cartPickupConflictMessage(dateIn.value);
+    if (!msg) {
+      soldOutConflictEl.hidden = true;
+      soldOutConflictEl.textContent = "";
+      return;
+    }
+    soldOutConflictEl.hidden = false;
+    soldOutConflictEl.textContent = msg;
+    if (sheet && sheet.classList.contains("is-open")) {
+      soldOutConflictEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
   function setQty(id, q) {
-    if (q <= 0) delete cart[id];
-    else cart[id] = q;
+    q = Math.floor(Number(q));
+    if (!Number.isFinite(q) || q <= 0) delete cart[id];
+    else if (requiresMinFive(id) && q < MIN_QTY_SIDE_DISH) return;
+    else cart[id] = Math.min(99, q);
     saveCart();
+    if (window.ReserveOrderIdempotency) ReserveOrderIdempotency.markCartChanged();
     sync();
+  }
+
+  function bumpQty(id, delta) {
+    var cur = getQty(id);
+    if (delta > 0) {
+      if (requiresMinFive(id) && cur === 0) setQty(id, MIN_QTY_SIDE_DISH);
+      else setQty(id, cur + delta);
+      return;
+    }
+    if (delta < 0) {
+      if (requiresMinFive(id) && cur <= MIN_QTY_SIDE_DISH) setQty(id, 0);
+      else setQty(id, cur + delta);
+    }
+  }
+
+  function applySetQtyFromModal(id, q) {
+    var cur = getQty(id);
+    if (q === cur + 1) bumpQty(id, 1);
+    else if (q === cur - 1) bumpQty(id, -1);
+    else setQty(id, q);
+  }
+
+  function sanitizeSideDishCartQty() {
+    Object.keys(SIDE_DISH_MIN_ITEM_IDS).forEach(function (id) {
+      var q = cart[id];
+      if (q > 0 && q < MIN_QTY_SIDE_DISH) delete cart[id];
+    });
   }
 
   function clearCart() {
@@ -324,6 +466,7 @@
     cart = {};
     bentoCart = {};
     saveCart();
+    if (window.ReserveOrderIdempotency) ReserveOrderIdempotency.markCartChanged();
     sync();
   }
 
@@ -338,6 +481,12 @@
 
   function hasBentoInCart() {
     return totalBentoQty() > 0;
+  }
+
+  function hasSideDishInCart() {
+    return Object.keys(SIDE_DISH_MIN_ITEM_IDS).some(function (id) {
+      return getQty(id) > 0;
+    });
   }
 
   function cloneDay(d) {
@@ -357,7 +506,7 @@
     var today = new Date();
     today.setHours(0, 0, 0, 0);
     var start = cloneDay(today);
-    if (hasBentoInCart()) start.setDate(start.getDate() + 2);
+    if (hasBentoInCart() || hasSideDishInCart()) start.setDate(start.getDate() + 2);
     return start;
   }
 
@@ -419,18 +568,62 @@
     });
     if (keep && isValidPickupDate(keep)) {
       dateIn.value = keep;
-    } else if (dates.length) {
-      dateIn.value = toDateInputString(dates[0]);
+    } else {
+      var def = defaultPickupDateStr();
+      dateIn.value =
+        def && isValidPickupDate(def)
+          ? def
+          : dates.length
+            ? toDateInputString(dates[0])
+            : "";
     }
   }
 
   var PICKUP_LAST_HOUR = 17;
   var PICKUP_SCHEDULE_HINT = "平日 10:00〜 土日祝 7:00〜 水曜：定休日";
+  var PICKUP_TODAY_HOURS_NOTICE = "本日20時まで営業！";
+  var PICKUP_TIME_HINT_ONIGIRI =
+    "原則お受け取りの30分前までのご予約お願いします！";
+  var PICKUP_TIME_HINT_WITH_DASHIMAKI =
+    "だし巻き玉子もご注文の場合、\n" +
+    "原則お受け取りの2時間前までのご予約お願いします！\n" +
+    "(おにぎりのみの場合は30分前)";
 
   /** 土日祝は 7:00〜（YYYY-MM-DD で追加） */
-  var PICKUP_EARLY_OPEN_DATES = {
+  var PICKUP_EARLY_OPEN_DATES = {};
+
+  /** 受取ヒントの臨時文案（10/12祝日は予約10:00〜の案内用） */
+  var PICKUP_SCHEDULE_HINT_ALT = "平日 10:00〜 土日 7:00〜 水曜：定休日";
+  var PICKUP_SCHEDULE_HINT_ALT_FROM = "2026-10-11";
+  var PICKUP_SCHEDULE_HINT_ALT_UNTIL = "2026-10-12";
+
+  /** 祝日だが 10:00 開始（7:00 対象外・YYYY-MM-DD） */
+  var PICKUP_TEN_OPEN_DATES = {
     "2026-10-12": true,
   };
+
+  /** 閉店時刻を延長する日（YYYY-MM-DD → 最終時） */
+  var PICKUP_EXTENDED_CLOSE_DATES = {
+    "2026-10-10": 19,
+  };
+
+  /** だし巻き玉子（m017）を受取できない日（YYYY-MM-DD） */
+  var DASHIMAKI_UNAVAILABLE_PICKUP_DATES = {
+    "2026-10-17": true,
+    "2026-10-18": true,
+  };
+  var DASHIMAKI_ITEM_ID = "m017";
+
+  function pickupLastHourForDate(dateStr) {
+    if (dateStr && PICKUP_EXTENDED_CLOSE_DATES[dateStr] != null) {
+      return PICKUP_EXTENDED_CLOSE_DATES[dateStr];
+    }
+    return PICKUP_LAST_HOUR;
+  }
+
+  function isTodayExtendedCloseDay() {
+    return PICKUP_EXTENDED_CLOSE_DATES[toDateInputString(new Date())] != null;
+  }
 
   function isWeekendDate(d) {
     var day = d.getDay();
@@ -449,60 +642,222 @@
 
   function pickupHourMinForDate(dateStr) {
     if (!dateStr) return 10;
-    return usesEarlyPickupHours(dateStr) ? 7 : 10;
+    if (PICKUP_TEN_OPEN_DATES[dateStr]) return 10;
+    var min = usesEarlyPickupHours(dateStr) ? 7 : 10;
+    if (hasSideDishInCart()) min = Math.max(min, 10);
+    return min;
+  }
+
+  function pickupTimeSelectHint(dateStr) {
+    var lastH = pickupLastHourForDate(dateStr);
+    var minH = pickupHourMinForDate(dateStr);
+    var minLabel = (minH < 10 ? "0" : "") + minH + ":00";
+    if (usesEarlyPickupHours(dateStr)) {
+      return "土日祝は" + minLabel + "〜" + lastH + ":55でお選びください。";
+    }
+    return "平日は" + minLabel + "〜" + lastH + ":55でお選びください。";
+  }
+
+  function isScheduleHintAltPeriod() {
+    var todayStr = toDateInputString(new Date());
+    return todayStr >= PICKUP_SCHEDULE_HINT_ALT_FROM && todayStr <= PICKUP_SCHEDULE_HINT_ALT_UNTIL;
+  }
+
+  function activePickupScheduleHint() {
+    if (isScheduleHintAltPeriod()) {
+      return PICKUP_SCHEDULE_HINT_ALT;
+    }
+    return PICKUP_SCHEDULE_HINT;
+  }
+
+  function pickupScheduleHintForCart() {
+    var hint = activePickupScheduleHint();
+    if (!hasSideDishInCart()) return hint;
+    return hint
+      .replace("土日祝 7:00〜", "土日祝 10:00〜")
+      .replace("土日 7:00〜", "土日 10:00〜");
+  }
+
+  function pickupDateTime(dateStr, hour, min) {
+    var d = parseDateString(dateStr);
+    d.setHours(parseInt(hour, 10), parseInt(min, 10), 0, 0);
+    return d;
+  }
+
+  function ceilNowToFiveMinutes() {
+    var c = new Date();
+    c.setSeconds(0, 0);
+    c.setMilliseconds(0);
+    var min = Math.ceil(c.getMinutes() / 5) * 5;
+    if (min >= 60) {
+      min = 0;
+      c.setHours(c.getHours() + 1);
+    }
+    c.setMinutes(min);
+    return c;
+  }
+
+  /** その日に選べる最早の受取日時（当日は現在時刻以降・5分切上げ） */
+  function earliestPickupMomentForDate(dateStr) {
+    var open = pickupOpeningDateTime(dateStr);
+    var now = new Date();
+    if (!sameCalendarDay(parseDateString(dateStr), now)) {
+      return open;
+    }
+    var earliest = ceilNowToFiveMinutes();
+    return earliest > open ? earliest : open;
+  }
+
+  function effectiveMinHourForDate(dateStr) {
+    var minHour = pickupHourMinForDate(dateStr);
+    var earliest = earliestPickupMomentForDate(dateStr);
+    var eh = earliest.getHours();
+    return eh > minHour ? eh : minHour;
+  }
+
+  function rebuildMinOptions(preferred) {
+    if (!minIn || !dateIn || !hourIn || !dateIn.value || hourIn.value === "") return;
+    var h = parseInt(hourIn.value, 10);
+    if (isNaN(h)) return;
+    var keep = preferred != null ? preferred : minIn.value;
+    var minMinute = 0;
+    var earliest = earliestPickupMomentForDate(dateIn.value);
+    if (sameCalendarDay(parseDateString(dateIn.value), new Date()) && h === earliest.getHours()) {
+      minMinute = earliest.getMinutes();
+    }
+    minIn.innerHTML = "";
+    var empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "選択";
+    minIn.appendChild(empty);
+    for (var m = 0; m <= 55; m += 5) {
+      if (m < minMinute) continue;
+      var opt = document.createElement("option");
+      var label = m < 10 ? "0" + m : String(m);
+      opt.value = label;
+      opt.textContent = label;
+      minIn.appendChild(opt);
+    }
+    if (keep && Number(keep) >= minMinute) {
+      minIn.value = keep;
+    } else {
+      minIn.value = "";
+    }
   }
 
   function rebuildHourOptions(preferred) {
-    if (!hourIn || !dateIn || !dateIn.value) return;
-    var minHour = pickupHourMinForDate(dateIn.value);
+    if (!hourIn || !dateIn || !dateIn.value) {
+      if (hourIn) hourIn.value = "";
+      if (minIn) minIn.value = "";
+      return;
+    }
+    var minHour = effectiveMinHourForDate(dateIn.value);
     var keep = preferred || hourIn.value;
     hourIn.innerHTML = "";
     var empty = document.createElement("option");
     empty.value = "";
     empty.textContent = "選択";
     hourIn.appendChild(empty);
-    for (var h = minHour; h <= PICKUP_LAST_HOUR; h++) {
-      var opt = document.createElement("option");
-      opt.value = String(h);
-      opt.textContent = String(h);
-      hourIn.appendChild(opt);
+    var lastHour = pickupLastHourForDate(dateIn.value);
+    if (minHour <= lastHour) {
+      for (var h = minHour; h <= lastHour; h++) {
+        var opt = document.createElement("option");
+        opt.value = String(h);
+        opt.textContent = String(h);
+        hourIn.appendChild(opt);
+      }
     }
-    if (keep && Number(keep) >= minHour && Number(keep) <= PICKUP_LAST_HOUR) {
+    if (keep && Number(keep) >= minHour && Number(keep) <= lastHour) {
       hourIn.value = keep;
     } else {
-      hourIn.value = String(minHour);
+      hourIn.value = "";
     }
+    rebuildMinOptions(minIn ? minIn.value : "");
   }
 
-  function suggestDefaultPickupTime(dateStr) {
-    var now = new Date();
-    now.setMinutes(now.getMinutes() + 60);
-    var hour = now.getHours();
-    var min = Math.ceil(now.getMinutes() / 5) * 5;
+  function sameCalendarDay(a, b) {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  }
+
+  function pickupOpeningDateTime(dateStr) {
+    var d = parseDateString(dateStr);
+    d.setHours(pickupHourMinForDate(dateStr), 0, 0, 0);
+    return d;
+  }
+
+  function pickupLastDateTime(dateStr) {
+    var d = parseDateString(dateStr);
+    d.setHours(pickupLastHourForDate(dateStr), 55, 0, 0);
+    return d;
+  }
+
+  function candidatePickupFromNow() {
+    var c = new Date();
+    c.setMinutes(c.getMinutes() + 60);
+    c.setSeconds(0, 0);
+    c.setMilliseconds(0);
+    var min = Math.ceil(c.getMinutes() / 5) * 5;
     if (min >= 60) {
       min = 0;
-      hour += 1;
+      c.setHours(c.getHours() + 1);
     }
-    var minHour = pickupHourMinForDate(dateStr);
-    if (hour > PICKUP_LAST_HOUR || hour >= 18) {
-      hour = minHour;
-      min = 0;
-    } else if (hour < minHour) {
-      hour = minHour;
-      min = 0;
+    c.setMinutes(min);
+    return c;
+  }
+
+  /** 希望日の初期値: 当日（お弁当は2日後〜）。営業時間後は次の営業日 */
+  function defaultPickupDateStr() {
+    var now = new Date();
+    var dateStr = toDateInputString(getEarliestPickupDate());
+
+    while (dateStr) {
+      if (!isValidPickupDate(dateStr)) {
+        var fix = nextValidPickupDate(parseDateString(dateStr));
+        if (!fix) break;
+        dateStr = toDateInputString(fix);
+        continue;
+      }
+
+      var pickDay = parseDateString(dateStr);
+      if (!sameCalendarDay(pickDay, now)) {
+        return dateStr;
+      }
+
+      var last = pickupLastDateTime(dateStr);
+      var cand = candidatePickupFromNow();
+
+      if (now > last || cand > last) {
+        var after = cloneDay(pickDay);
+        after.setDate(after.getDate() + 1);
+        var next = nextValidPickupDate(after);
+        if (!next) break;
+        dateStr = toDateInputString(next);
+        continue;
+      }
+
+      return dateStr;
     }
-    return {
-      hour: String(hour),
-      min: (min < 10 ? "0" : "") + min,
-    };
+
+    var dates = getSelectablePickupDates();
+    return dates.length ? toDateInputString(dates[0]) : "";
   }
 
   function isValidPickupTime(dateStr, hour, min) {
     if (!dateStr || hour === "" || min === "") return false;
     var h = parseInt(hour, 10);
-    if (isNaN(h)) return false;
-    var minHour = pickupHourMinForDate(dateStr);
-    return h >= minHour && h <= PICKUP_LAST_HOUR;
+    var m = parseInt(min, 10);
+    if (isNaN(h) || isNaN(m)) return false;
+    if (h < effectiveMinHourForDate(dateStr) || h > pickupLastHourForDate(dateStr)) {
+      return false;
+    }
+    var pick = pickupDateTime(dateStr, hour, min);
+    var earliest = earliestPickupMomentForDate(dateStr);
+    var last = pickupLastDateTime(dateStr);
+    return pick >= earliest && pick <= last;
   }
 
   function formatTotalCount(count) {
@@ -516,7 +871,34 @@
 
   function updateSubmitButton() {
     if (!submitBtn) return;
-    submitBtn.disabled = cartTotals().count <= 0;
+    var empty = cartTotals().count <= 0;
+    var conflict =
+      dateIn && dateIn.value && hasCartPickupConflict(dateIn.value);
+    submitBtn.disabled = empty || conflict;
+  }
+
+  function cartHasDashimaki() {
+    return getQty(DASHIMAKI_ITEM_ID) > 0;
+  }
+
+  function showDashimakiPickupTimeHint() {
+    if (!cartHasDashimaki()) return false;
+    if (dateIn && dateIn.value && dashimakiBlockedForPickupDate(dateIn.value)) {
+      return false;
+    }
+    return true;
+  }
+
+  function updatePickupTimeHint() {
+    var timeHint = document.querySelector(".reserve-time-hint");
+    if (!timeHint) return;
+    var text = showDashimakiPickupTimeHint()
+      ? PICKUP_TIME_HINT_WITH_DASHIMAKI
+      : PICKUP_TIME_HINT_ONIGIRI;
+    if (isTodayExtendedCloseDay()) {
+      text += " " + PICKUP_TODAY_HOURS_NOTICE;
+    }
+    timeHint.textContent = text;
   }
 
   function sync() {
@@ -534,9 +916,120 @@
       orderLinesInput.value = buildOrderText();
     }
     updateDateConstraints();
+    updateSoldOutConflictUi();
+    updatePickupTimeHint();
+    updateSubmitButton();
   }
 
   window.updateReserveSubmitState = updateSubmitButton;
+
+  function isOtherOrderItem(id) {
+    return !!ORDER_OTHER_ITEM_IDS[id];
+  }
+
+  function sortCartIdsByPriceAsc(ids) {
+    return ids.slice().sort(function (a, b) {
+      var itA = ITEM_MAP[a];
+      var itB = ITEM_MAP[b];
+      if (!itA || !itB) return 0;
+      if (itA.price !== itB.price) return itA.price - itB.price;
+      return itA.name.localeCompare(itB.name, "ja");
+    });
+  }
+
+  function getOnigiriCartItemIds() {
+    var inCart = Object.keys(cart).filter(function (id) {
+      return cart[id] > 0 && ITEM_MAP[id] && !isOtherOrderItem(id);
+    });
+    return sortCartIdsByPriceAsc(inCart);
+  }
+
+  function getOtherCartItemIds() {
+    var inCart = Object.keys(cart).filter(function (id) {
+      return cart[id] > 0 && ITEM_MAP[id] && isOtherOrderItem(id);
+    });
+    return sortCartIdsByPriceAsc(inCart);
+  }
+
+  /** カート表示用（追加した順） */
+  function getCartItemIds() {
+    return Object.keys(cart).filter(function (id) {
+      return cart[id] > 0 && ITEM_MAP[id];
+    });
+  }
+
+  /** LINE送信のご注文行（おにぎりは単価昇順 → その他） */
+  function getLineOrderItemIds() {
+    return getOnigiriCartItemIds().concat(getOtherCartItemIds());
+  }
+
+  /** LINE注文用（画面表示の改行・(…) 注記は出さない） */
+  function orderLineItemName(name) {
+    if (!name) return "";
+    var line = String(name).split("\n")[0].trim();
+    return line.replace(/\s*\([^)]*\)\s*$/, "").trim() || line;
+  }
+
+  function buildReserveLineSummary() {
+    var rows = [];
+    getBentoChoiceIds().forEach(function (choiceId) {
+      var q = bentoCart[choiceId];
+      if (q <= 0) return;
+      rows.push({
+        name: BENTO_LABEL + "（" + bentoDetailText(choiceId) + "）",
+        quantity: q,
+      });
+    });
+    getLineOrderItemIds().forEach(function (id) {
+      var q = cart[id];
+      if (q <= 0) return;
+      var it = ITEM_MAP[id];
+      if (!it) return;
+      rows.push({
+        name: orderLineItemName(it.name),
+        quantity: q,
+      });
+    });
+    return rows;
+  }
+
+  function buildReserveOrderSnapshot(form) {
+    var items = [];
+    getBentoChoiceIds().forEach(function (choiceId) {
+      var q = bentoCart[choiceId];
+      if (q <= 0) return;
+      items.push({
+        lineId: "bento-" + choiceId,
+        productId: "bento",
+        bentoChoiceId: choiceId,
+        quantity: q,
+      });
+    });
+    getLineOrderItemIds().forEach(function (id) {
+      var q = cart[id];
+      if (q <= 0) return;
+      items.push({
+        lineId: "pid-" + id,
+        productId: id,
+        quantity: q,
+      });
+    });
+    return {
+      customerName: form.name,
+      pickupDate: form.date,
+      pickupHour: form.hour,
+      pickupMin: form.min,
+      note: form.note,
+      items: items,
+      lineSummary: buildReserveLineSummary(),
+      totalQuantity: cartTotals().count,
+    };
+  }
+
+  window.ReserveOrder = {
+    buildReserveOrderSnapshot: buildReserveOrderSnapshot,
+    buildReserveLineSummary: buildReserveLineSummary,
+  };
 
   function buildOrderText() {
     var lines = [];
@@ -550,31 +1043,15 @@
           bentoDetailText(choiceId)
       );
     });
-    Object.keys(cart).forEach(function (id) {
+    getLineOrderItemIds().forEach(function (id) {
       var q = cart[id];
-      if (q > 0) {
-        var it = ITEM_MAP[id];
-        lines.push(it.name + " ×" + q);
-      }
+      if (q <= 0) return;
+      var it = ITEM_MAP[id];
+      if (!it) return;
+      lines.push(orderLineItemName(it.name) + " ×" + q);
     });
     if (!lines.length) return "（品目なし）";
     return lines.join("\n");
-  }
-
-  function getCartItemIds() {
-    var inCart = Object.keys(cart).filter(function (id) {
-      return cart[id] > 0 && ITEM_MAP[id];
-    });
-    var ordered = [];
-    GROUPS.forEach(function (g) {
-      g.items.forEach(function (it) {
-        if (inCart.indexOf(it.id) !== -1) ordered.push(it.id);
-      });
-    });
-    inCart.forEach(function (id) {
-      if (ordered.indexOf(id) === -1) ordered.push(id);
-    });
-    return ordered;
   }
 
   function renderBentoSection() {
@@ -798,21 +1275,46 @@
     parent.appendChild(sec);
   }
 
+  function showMenuLoading() {
+    if (!root) return;
+    root.classList.add("reserve-menu-root--loading");
+    root.innerHTML =
+      '<div class="reserve-menu-loading" role="status" aria-live="polite">' +
+      '<div class="reserve-menu-loading__spinner" aria-hidden="true"></div>' +
+      "<p class=\"reserve-menu-loading__text\">メニューを取得しています…</p>" +
+      "</div>";
+  }
+
   function renderMenu() {
     if (!root) return;
+    root.classList.remove("reserve-menu-root--loading");
     root.innerHTML = "";
     GROUPS.forEach(function (g) {
       var sec = document.createElement("section");
       sec.className = "reserve-group";
+      if (g.anchorId) sec.id = g.anchorId;
       sec.setAttribute("aria-label", g.label);
       var h2 = document.createElement("h2");
       h2.className = "reserve-group__title";
       h2.textContent = g.label;
       sec.appendChild(h2);
-      (g.notes || (g.note ? [g.note] : [])).forEach(function (text) {
+      (g.notes || (g.note ? [g.note] : [])).forEach(function (entry) {
+        var text = typeof entry === "string" ? entry : entry.text || "";
         var groupNote = document.createElement("p");
         groupNote.className = "reserve-group__note";
-        groupNote.textContent = text;
+        if (text) groupNote.appendChild(document.createTextNode(text));
+        if (entry && typeof entry === "object" && entry.newsHref) {
+          if (text) groupNote.appendChild(document.createTextNode(" "));
+          var newsLink = document.createElement("a");
+          newsLink.className = "reserve-group__note-link";
+          newsLink.href = entry.newsHref;
+          newsLink.textContent = "お惣菜のご案内";
+          groupNote.appendChild(newsLink);
+          if (entry.lineOnly) {
+            groupNote.hidden = true;
+            groupNote.setAttribute("data-line-client-only", "");
+          }
+        }
         sec.appendChild(groupNote);
       });
       var grid = document.createElement("div");
@@ -823,25 +1325,40 @@
       sec.appendChild(grid);
       root.appendChild(sec);
     });
-    appendOtherPreparingSection(root);
   }
 
   function menuModalNote(id) {
-    if (id === "m017") return "だし巻き玉子は3個入りです";
-    if (id === "m018") return "お惣菜は前日までのご予約が必要です。";
+    if (id === "m017") {
+      return (
+        "だし巻き玉子は3個入りです\n" +
+        "原則お受け取りの2時間前までにご予約ください。"
+      );
+    }
+    if (id === "m018") return "お惣菜セットは2日前までのご予約が必要です（5個から）。";
+    if (id === "m020") return "唐揚げは2日前までのご予約が必要です（5個から）。";
     return "おにぎりは1つの価格です";
+  }
+
+  function menuCardNote(id) {
+    if (id === "m017") return "2時間前までにご予約ください。";
+    if (id === "m018" || id === "m020") {
+      return "2日前までにご予約ください。\n5個からの注文となります。";
+    }
+    return "";
   }
 
   function buildMenuModalItems() {
     var list = [];
     GROUPS.forEach(function (g) {
       g.items.forEach(function (item) {
+        var soldMsg = itemSoldOutMessage(item.id);
         list.push({
           id: item.id,
           src: itemImage(item.id),
           title: item.name,
           price: money(item.price),
-          note: menuModalNote(item.id),
+          note: soldMsg || menuModalNote(item.id),
+          soldOut: false,
           getQty: (function (id) {
             return function () {
               return getQty(id);
@@ -849,7 +1366,7 @@
           })(item.id),
           setQty: (function (id) {
             return function (q) {
-              setQty(id, q);
+              applySetQtyFromModal(id, q);
             };
           })(item.id),
         });
@@ -866,8 +1383,9 @@
   }
 
   function buildCard(it) {
+    var soldMsg = itemSoldOutMessage(it.id);
     var card = document.createElement("article");
-    card.className = "reserve-card";
+    card.className = "reserve-card" + (soldMsg ? " reserve-card--sold-out" : "");
     card.setAttribute("data-id", it.id);
     var mediaBtn = document.createElement("button");
     mediaBtn.type = "button";
@@ -914,16 +1432,29 @@
     btnP.textContent = "+";
     var id = it.id;
     btnM.addEventListener("click", function () {
-      setQty(id, getQty(id) - 1);
+      bumpQty(id, -1);
     });
     btnP.addEventListener("click", function () {
-      setQty(id, getQty(id) + 1);
+      bumpQty(id, 1);
     });
     step.appendChild(btnM);
     step.appendChild(qty);
     step.appendChild(btnP);
     body.appendChild(name);
+    var cardNote = menuCardNote(it.id);
+    if (cardNote) {
+      var hint = document.createElement("p");
+      hint.className = "reserve-card__note";
+      hint.textContent = cardNote;
+      body.appendChild(hint);
+    }
     body.appendChild(price);
+    if (soldMsg) {
+      var soldNote = document.createElement("p");
+      soldNote.className = "reserve-card__sold-out";
+      soldNote.textContent = soldMsg;
+      body.appendChild(soldNote);
+    }
     body.appendChild(step);
     card.appendChild(mediaBtn);
     card.appendChild(body);
@@ -1048,10 +1579,10 @@
       b2.textContent = "+";
       (function (pid) {
         b1.addEventListener("click", function () {
-          setQty(pid, getQty(pid) - 1);
+          bumpQty(pid, -1);
         });
         b2.addEventListener("click", function () {
-          setQty(pid, getQty(pid) + 1);
+          bumpQty(pid, 1);
         });
       })(id);
       step.appendChild(b1);
@@ -1105,13 +1636,27 @@
     backdrop.setAttribute("aria-hidden", "true");
   }
 
-  loadCart();
-  // その他 準備中
-  if (cart.m017 || cart.m018) {
-    delete cart.m017;
-    delete cart.m018;
-    saveCart();
+  function scrollToMenuAnchorIfNeeded() {
+    var raw = location.hash;
+    if (!raw || raw.length < 2) return;
+    var id = decodeURIComponent(raw.slice(1));
+    var el = document.getElementById(id);
+    if (!el || !root || !root.contains(el)) return;
+    requestAnimationFrame(function () {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
+
+  function bootMenuAndCart() {
+    sanitizeSideDishCartQty();
+    renderMenu();
+    scrollToMenuAnchorIfNeeded();
+    if (window.LiffCore && LiffCore.syncLineOnlyUi) LiffCore.syncLineOnlyUi();
+    sync();
+  }
+
+  loadCart();
+  sanitizeSideDishCartQty();
   // お弁当一時中止
   if (Object.keys(bentoCart).length) {
     bentoCart = {};
@@ -1119,8 +1664,6 @@
   }
   // renderBentoSection();
   // initBentoModal();
-  renderMenu();
-  sync();
 
   if (fabOpen) {
     fabOpen.addEventListener("click", function () {
@@ -1163,6 +1706,7 @@
   var hourIn = document.getElementById("r-hour");
   var minIn = document.getElementById("r-min");
   var dateHintEl = document.getElementById("r-date-hint");
+  soldOutConflictEl = document.getElementById("r-soldout-conflict-submit");
 
   function updateDateConstraints() {
     if (!dateIn) return;
@@ -1180,11 +1724,23 @@
       }
     }
     if (dateHintEl) {
-      dateHintEl.textContent = hasBentoInCart()
-        ? "お弁当を含むご注文は2日後以降。" + PICKUP_SCHEDULE_HINT
-        : PICKUP_SCHEDULE_HINT;
+      var scheduleHint = pickupScheduleHintForCart();
+      var schedule = scheduleHint;
+      if (hasBentoInCart()) {
+        schedule = "お弁当を含むご注文は2日後以降。" + scheduleHint;
+      } else if (hasSideDishInCart()) {
+        schedule = "お惣菜・唐揚げを含むご注文は2日後以降。\n" + scheduleHint;
+      }
+      if (isTodayExtendedCloseDay()) {
+        dateHintEl.textContent = PICKUP_TODAY_HOURS_NOTICE + "\n" + schedule;
+      } else {
+        dateHintEl.textContent = schedule;
+      }
     }
     rebuildHourOptions(hourIn ? hourIn.value : "");
+    updateSoldOutConflictUi();
+    updatePickupTimeHint();
+    updateSubmitButton();
   }
 
   window.validateReservePickupDate = function () {
@@ -1193,19 +1749,31 @@
       return false;
     }
     if (!isValidPickupDate(dateIn.value)) {
-      alert("受取希望日を選び直してください。");
+      alert(
+        hasSideDishInCart()
+          ? "お惣菜・唐揚げを含むご注文は2日後以降の受取日をお選びください。"
+          : "受取希望日を選び直してください。"
+      );
       updateDateConstraints();
+      return false;
+    }
+    var pickupConflict = cartPickupConflictMessage(dateIn.value);
+    if (pickupConflict) {
+      alert(pickupConflict);
+      updateSoldOutConflictUi();
+      updateSubmitButton();
       return false;
     }
     if (!hourIn || !minIn) return true;
     if (!isValidPickupTime(dateIn.value, hourIn.value, minIn.value)) {
-      var minHour = pickupHourMinForDate(dateIn.value);
-      alert(
-        usesEarlyPickupHours(dateIn.value)
-          ? "土日祝は7:00〜" + PICKUP_LAST_HOUR + ":55でお選びください。"
-          : "平日は10:00〜" + PICKUP_LAST_HOUR + ":55でお選びください。"
-      );
-      rebuildHourOptions();
+      var pick = pickupDateTime(dateIn.value, hourIn.value, minIn.value);
+      var earliest = earliestPickupMomentForDate(dateIn.value);
+      if (pick < earliest) {
+        alert("受取希望時間は現在時刻以降をお選びください。");
+      } else {
+        alert(pickupTimeSelectHint(dateIn.value));
+      }
+      rebuildHourOptions(hourIn.value);
       return false;
     }
     return true;
@@ -1213,15 +1781,52 @@
 
   if (dateIn && hourIn && minIn) {
     dateIn.addEventListener("change", function () {
-      rebuildHourOptions();
+      updateDateConstraints();
+    });
+    hourIn.addEventListener("change", function () {
+      rebuildMinOptions();
     });
 
+    dateIn.value = "";
+    hourIn.value = "";
+    minIn.value = "";
     updateDateConstraints();
-    if (dateIn.value) {
-      var suggested = suggestDefaultPickupTime(dateIn.value);
-      hourIn.value = suggested.hour;
-      minIn.value = suggested.min;
-      rebuildHourOptions(hourIn.value);
-    }
+    updateSoldOutConflictUi();
+    updateSubmitButton();
   }
+
+  if (window.MenuAvailability && MenuAvailability.isConfigured()) {
+    showMenuLoading();
+    MenuAvailability.loadAndApply(ITEM_MAP)
+      .then(function () {
+        bootMenuAndCart();
+        MenuAvailability.watch(ITEM_MAP, function () {
+          purgeUnavailableFromCart();
+          renderMenu();
+          sync();
+        });
+      })
+      .catch(function () {
+        bootMenuAndCart();
+      });
+  } else {
+    bootMenuAndCart();
+  }
+
+  (function applyTodayHoursNotice() {
+    if (!isTodayExtendedCloseDay()) return;
+    var underTitle = document.getElementById("reserve-today-hours");
+    if (underTitle) {
+      underTitle.textContent = PICKUP_TODAY_HOURS_NOTICE;
+      underTitle.hidden = false;
+    }
+    updatePickupTimeHint();
+  })();
+
+  (function showBulkLocalLink() {
+    var el = document.getElementById("reserve-bulk-local-link");
+    if (!el || !window.LiffEnv || !LiffEnv.isLocalDev()) return;
+    el.hidden = false;
+  })();
+
 })();

@@ -734,6 +734,15 @@ p {
   font-size: 0.95rem;
 }
 
+#menu .menu__sold-out {
+  margin: -0.8em 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #b45309;
+  font-weight: 600;
+  white-space: pre-line;
+}
+
 #menu ul.menu {
   list-style: none;
   margin: 0 0 1.8em;
@@ -1027,10 +1036,11 @@ table.kaisha.kaisha--week {
 }
 
 .sns-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(2, 8.5rem);
+  justify-content: center;
+  column-gap: 2.5rem;
+  row-gap: 0.5rem;
   margin-bottom: 0.75em;
 }
 
@@ -1042,35 +1052,54 @@ table.kaisha.kaisha--week {
 }
 
 .sns-links__link {
-  border-radius: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  text-decoration: none;
 }
 
-.sns-links__link--image {
-  display: inline-block;
+.sns-links__link--brand {
+  display: block;
   line-height: 0;
 }
 
 .sns-links__link:focus-visible {
   outline: 2px solid #004c71;
   outline-offset: 4px;
+  border-radius: 14px;
 }
 
-.sns-links__icon {
-  display: block;
+.sns-links__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 56px;
   height: 56px;
-  object-fit: contain;
-  vertical-align: middle;
   border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.sns-links__link--instagram .sns-links__brand {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+}
+
+.sns-links__link--line .sns-links__brand {
+  background: #06c755;
+}
+
+.sns-links__brand-svg {
+  display: block;
+  width: 32px;
+  height: 32px;
 }
 
 .sns-links__item-cap {
   margin: 0;
   font-size: 0.95em;
   text-align: center;
-  max-width: 10em;
+  width: 100%;
   line-height: 1.4;
+  word-break: break-all;
 }
 
 .visually-hidden {

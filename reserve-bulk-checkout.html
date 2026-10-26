@@ -2,7 +2,7 @@
 <html lang="ja" class="reserve-page">
   <head>
     <meta charset="utf-8" />
-    <script>location.replace("/line-entry/reserve");</script>
+    <script src="js/bulk-local-guard.js"></script>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>お届け情報の入力 - 大口注文 - 親孝行おにぎり</title>
@@ -16,20 +16,13 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
     <link rel="stylesheet" href="css/style.css?v=20250904" />
-    <link rel="stylesheet" href="css/reserve.css?v=20250904" />
+    <link rel="stylesheet" href="css/reserve.css?v=20251021bulk" />
   </head>
   <body class="reserve-body reserve-checkout-body">
     <div class="site-content">
       <div class="container-content">
         <main id="main" class="content-area">
-          <p class="reserve-checkout-back">
-            <a href="/line-entry/reserve">← 通常のご予約へ</a>
-          </p>
-          <h1>大口注文（配送）</h1>
-          <p class="reserve-lead">
-            大口注文（配送）は<strong>現在一時停止</strong>しています。
-          </p>
-          <!-- 大口一時中止
+          <p class="reserve-local-banner" role="status">ローカルプレビュー（本番の大口注文は停止中）</p>
           <p class="reserve-checkout-back">
             <a href="/line-entry/reserve-bulk">← カートに戻る</a>
           </p>
@@ -81,7 +74,14 @@
               <h3 class="reserve-form__h">配達先</h3>
               <p>
                 <label for="r-zip">郵便番号 <span class="req" aria-label="必須">＊</span></label>
-                <input type="text" name="delivery_zip" id="r-zip" inputmode="numeric" autocomplete="postal-code" placeholder="例：365-0078" />
+                <input
+                  type="text"
+                  name="delivery_zip"
+                  id="r-zip"
+                  inputmode="numeric"
+                  autocomplete="postal-code"
+                  placeholder="例：365-0078"
+                />
               </p>
               <p>
                 <label for="r-city">市区町村</label>
@@ -89,7 +89,13 @@
               </p>
               <p>
                 <label for="r-street">番地 <span class="req" aria-label="必須">＊</span></label>
-                <input type="text" name="delivery_street" id="r-street" autocomplete="street-address" placeholder="例：赤見台1-2-3" />
+                <input
+                  type="text"
+                  name="delivery_street"
+                  id="r-street"
+                  autocomplete="street-address"
+                  placeholder="例：赤見台1-2-3"
+                />
               </p>
               <p>
                 <label for="r-building">建物名・部屋番号（任意）</label>
@@ -142,9 +148,7 @@
               <fieldset class="reserve-form__fieldset">
                 <legend>配達希望日時 <span class="req" aria-label="必須">＊</span></legend>
                 <p class="delivery-slot-selected" id="delivery-slot-selected" hidden></p>
-                <button type="button" class="delivery-slot-open-btn" id="delivery-slot-open">
-                  配達日時を選ぶ
-                </button>
+                <button type="button" class="delivery-slot-open-btn" id="delivery-slot-open">配達日時を選ぶ</button>
                 <p class="reserve-form__note reserve-form__note--tight">
                   配達員のシフトに合わせて、空いている時間帯からお選びください（30分刻み）。
                 </p>
@@ -159,7 +163,6 @@
             </p>
             <button type="submit" class="reserve-form__submit" id="reserve-submit">注文内容を送信</button>
           </form>
-          -->
         </main>
       </div>
     </div>
@@ -170,7 +173,6 @@
       </div>
     </footer>
 
-    <!-- 大口一時中止
     <div class="delivery-slot-backdrop" id="delivery-slot-backdrop" aria-hidden="true"></div>
     <div
       class="delivery-slot-modal"
@@ -181,9 +183,7 @@
       aria-hidden="true"
     >
       <div class="delivery-slot-modal__panel">
-        <button type="button" class="delivery-slot-modal__close" id="delivery-slot-close" aria-label="閉じる">
-          ×
-        </button>
+        <button type="button" class="delivery-slot-modal__close" id="delivery-slot-close" aria-label="閉じる">×</button>
         <header class="delivery-slot-modal__head">
           <h2 class="delivery-slot-modal__title" id="delivery-slot-title">配達日時の選択</h2>
           <div class="delivery-slot-modal__nav">
@@ -198,24 +198,21 @@
         </header>
         <div class="delivery-slot-modal__body" id="delivery-slot-grid"></div>
         <footer class="delivery-slot-modal__foot">
-          <button type="button" class="delivery-slot-modal__confirm" id="delivery-slot-confirm" disabled>
-            この日時で決定
-          </button>
+          <button type="button" class="delivery-slot-modal__confirm" id="delivery-slot-confirm" disabled>この日時で決定</button>
         </footer>
       </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20250904"></script>
-    <script src="js/delivery-schedule.js?v=20250904" defer></script>
-    <script src="js/delivery-slot-picker.js?v=20250904" defer></script>
+    <script src="js/firebase-config.js?v=20251011c"></script>
+    <script src="js/delivery-schedule.js?v=20251022b" defer></script>
+    <script src="js/delivery-slot-picker.js?v=20251022b" defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="js/reserve-bulk-checkout.js?v=20250915" defer></script>
+    <script src="js/reserve-bulk-checkout.js?v=20251021bulk4" defer></script>
     <script src="js/liff-env.js?v=20250904" defer></script>
     <script src="js/liff-core.js?v=20251009" defer></script>
-    <script src="js/liff-message.js?v=20250904" defer></script>
+    <script src="js/liff-message.js?v=20251017i" defer></script>
     <script src="js/liff-bulk.js?v=20250915" defer></script>
-    -->
   </body>
 </html>

@@ -193,6 +193,12 @@ window.DeliverySlotPicker = (function () {
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && modal.classList.contains("is-open")) closePicker();
     });
+
+    window.addEventListener("delivery-config-updated", function () {
+      if (modal && modal.classList.contains("is-open")) {
+        schedule.refreshBookings().then(renderGrid);
+      }
+    });
   }
 
   return {

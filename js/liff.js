@@ -8,6 +8,7 @@
   function initLiff() {
     LiffCore.init()
       .then(function () {
+        LiffCore.syncLineOnlyUi();
         if (!liff.isInClient()) {
           alert("LINEアプリから開いてください");
           return;
@@ -34,7 +35,7 @@
   }
 
   if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
-    /* 送信ボタンは reserve.js がカート状態で制御 */
+    if (window.LiffCore) LiffCore.syncLineOnlyUi();
   } else if (window.LiffCore) {
     initLiff();
   }
@@ -59,62 +60,65 @@
       if (window.validateReservePickupDate && !window.validateReservePickupDate()) {
         return;
       }
+      if (!window.ReserveOrderClient) {
+        notifyError("予約ページの読み込みが完了していません。一度閉じて開き直してください。");
+        return;
+      }
+      if (!ReserveOrderClient.apiConfigured()) {
+        notifyError(ReserveOrderClient.errorMessage({ message: "orders_api_not_configured" }));
+        return;
+      }
+      if (!window.ReserveOrder || !window.ReserveOrderPayload) {
+        notifyError("予約ページの読み込みが完了していません。一度閉じて開き直してください。");
+        return;
+      }
+      if (!window.ReserveSubmitFlow) {
+        notifyError("予約ページの読み込みが完了していません。一度閉じて開き直してください。");
+        return;
+      }
+
       ReserveBtn.disabled = true;
 
-      var reserveInfo = {
+      var noteEl = document.getElementById("r-note");
+      var formSnapshot = {
         name: document.getElementById("r-name").value,
-        tel: document.getElementById("r-tel").value.trim(),
         date: document.getElementById("r-date").value,
         hour: document.getElementById("r-hour").value,
         min: document.getElementById("r-min").value,
-        order: document.getElementById("order_lines").value,
-        total: document.getElementById("cart-subtotal").textContent,
-        count: (function () {
-          var el = document.getElementById("cart-subtotal-count");
-          if (el && el.textContent) {
-            return el.textContent.replace(/[（）]/g, "").trim();
-          }
-          var fab = document.getElementById("fab-count");
-          return fab ? fab.textContent.trim() : "";
-        })(),
-        note: (function () {
-          var el = document.getElementById("r-note");
-          return el ? el.value.trim() : "";
-        })(),
+        note: noteEl ? noteEl.value.trim() : "",
       };
 
-      var messageText = window.LiffMessage
-        ? LiffMessage.buildReserveMessage(reserveInfo)
-        : [
-            "【ご予約】",
-            "お名前：" + reserveInfo.name,
-            "日時：" + reserveInfo.date + " " + reserveInfo.hour + ":" + reserveInfo.min,
-            "",
-            "ご注文：\n" + reserveInfo.order,
-            "小計：" + (reserveInfo.count ? reserveInfo.count + "点 " : "") + reserveInfo.total,
-          ].join("\n");
+      var orderSnapshot = ReserveOrder.buildReserveOrderSnapshot(formSnapshot);
+      var countText = (function () {
+        var el = document.getElementById("cart-subtotal-count");
+        if (el && el.textContent) {
+          return el.textContent.replace(/[（）]/g, "").trim();
+        }
+        var fab = document.getElementById("fab-count");
+        return fab ? fab.textContent.trim() : "";
+      })();
 
-      liff
-        .sendMessages([
-          {
-            type: "text",
-            text: messageText,
-          },
-        ])
-        .then(function () {
-          try {
-            localStorage.removeItem("oyakoko_reserve_cart_v2");
-            localStorage.removeItem("oyakoko_reserve_cart_v1");
-          } catch (e) {}
-          location.href = LiffCore.appPath("reserve-complete");
-        })
-        .catch(function (err) {
-          console.error(err);
-          notifyError("送信に失敗しました");
-          if (window.updateReserveSubmitState) {
-            window.updateReserveSubmitState();
-          }
+      try {
+        ReserveSubmitFlow.savePending({
+          formSnapshot: formSnapshot,
+          orderSnapshot: orderSnapshot,
+          tel: document.getElementById("r-tel").value.trim(),
+          orderLines: document.getElementById("order_lines").value,
+          count: countText,
+          total: document.getElementById("cart-subtotal").textContent,
         });
+      } catch (err) {
+        console.error(err);
+        notifyError(ReserveSubmitFlow.errorMessage(err));
+        if (window.updateReserveSubmitState) {
+          window.updateReserveSubmitState();
+        } else {
+          ReserveBtn.disabled = false;
+        }
+        return;
+      }
+
+      location.href = LiffCore.appPath("reserve-complete") + "?submitting=1";
     });
   }
 })();

@@ -1,0 +1,19 @@
+name = "oyakoko-reserve-orders-api"
+main = "src/index.js"
+compatibility_date = "2026-10-17"
+workers_dev = true
+preview_urls = false
+
+[vars]
+FIREBASE_PROJECT_ID = "oyakoko-onigiri"
+
+[[ratelimits]]
+name = "RESERVE_RATE_LIMIT"
+namespace_id = "260101"
+simple = { limit = 30, period = 60 }
+
+[observability]
+enabled = false
+
+# 秘密情報はwrangler secret putで登録。平文ファイルに書かない。
+# FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY

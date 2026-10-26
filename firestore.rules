@@ -3,7 +3,31 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /delivery_config/{docId} {
       allow read: if true;
-      allow write: if false;
+      allow create, update: if docId == 'default'
+        && request.resource.data.keys().hasOnly([
+          'slotMinutes', 'blockAdjacent', 'orderLeadDays', 'orderMaxDays',
+          'defaultShift', 'closedDates', 'dateOverrides', 'closedSlotKeys', 'updatedAt'
+        ])
+        && request.resource.data.slotMinutes is int
+        && request.resource.data.slotMinutes >= 15
+        && request.resource.data.slotMinutes <= 60
+        && request.resource.data.blockAdjacent is int
+        && request.resource.data.blockAdjacent >= 0
+        && request.resource.data.blockAdjacent <= 3
+        && request.resource.data.orderLeadDays is int
+        && request.resource.data.orderLeadDays >= 0
+        && request.resource.data.orderLeadDays <= 14
+        && request.resource.data.orderMaxDays is int
+        && request.resource.data.orderMaxDays >= 1
+        && request.resource.data.orderMaxDays <= 90
+        && request.resource.data.defaultShift is map
+        && request.resource.data.closedDates is list
+        && request.resource.data.closedDates.size() <= 120
+        && request.resource.data.dateOverrides is map
+        && request.resource.data.dateOverrides.size() <= 120
+        && request.resource.data.closedSlotKeys is list
+        && request.resource.data.closedSlotKeys.size() <= 1500;
+      allow delete: if false;
     }
 
     match /delivery_bookings/{bookingId} {
@@ -16,6 +40,28 @@ service cloud.firestore {
         && request.resource.data.hour is int
         && request.resource.data.min is int;
       allow update, delete: if false;
+    }
+
+    match /menu_availability/{docId} {
+      allow read: if true;
+      allow create, update: if docId == 'default'
+        && request.resource.data.keys().hasOnly(['items', 'updatedAt'])
+        && request.resource.data.items is map
+        && request.resource.data.items.size() <= 40;
+      allow delete: if false;
+    }
+
+    /* ネット予約 orders — クライアント直アクセス不可（API のサービスアカウントのみ） */
+    match /orders/{orderId} {
+      allow read, create, update, delete: if false;
+    }
+
+    match /order_idempotency/{keyId} {
+      allow read, create, update, delete: if false;
+    }
+
+    match /system/{docId} {
+      allow read, create, update, delete: if false;
     }
   }
 }
