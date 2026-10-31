@@ -62,33 +62,14 @@
     {
       label: "その他",
       anchorId: "reserve-other",
+      notes: [{ newsHref: "/line-entry/news/side-dish", lineOnly: true }],
       items: [
-        /* お惣菜 m018・唐揚げ m020 は本番非表示（ローカルでは applyLocalOtherMenuExtras） */
+        { id: "m018", name: "お惣菜セット", price: 550, image: "お惣菜.JPG" },
+        { id: "m020", name: "唐揚げ", price: 550, image: "karaage.jpg" },
         { id: "m017", name: "だし巻き玉子", price: 290, image: "だしまき" },
       ],
     },
   ];
-
-  function isLocalPreviewHost() {
-    var h = location.hostname;
-    if (/^(localhost|127\.0\.0\.1)$/.test(h)) return true;
-    return /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h);
-  }
-
-  function applyLocalOtherMenuExtras() {
-    if (!isLocalPreviewHost()) return;
-    GROUPS.forEach(function (g) {
-      if (g.label !== "その他") return;
-      g.notes = [{ newsHref: "/line-entry/news/side-dish", lineOnly: true }];
-      g.items = [
-        { id: "m018", name: "お惣菜セット", price: 550, image: "お惣菜.JPG" },
-        { id: "m020", name: "唐揚げ", price: 550, image: "karaage.jpg" },
-        { id: "m017", name: "だし巻き玉子", price: 290, image: "だしまき" },
-      ];
-    });
-  }
-
-  applyLocalOtherMenuExtras();
 
   /** ご注文テキストではおにぎりの後に並べる（その他・準備中品も含む） */
   var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true, m020: true };
