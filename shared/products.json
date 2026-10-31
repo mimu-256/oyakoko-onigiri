@@ -6,7 +6,7 @@
     "basePrice": 980,
     "fixedOnigiriId": "m005",
     "surcharges": {
-      "m001": 100,
+      "m001": 30,
       "m002": 100,
       "m003": 50,
       "m004": 50,
@@ -25,7 +25,7 @@
   },
   "dashimakiBlockedPickupDates": ["2026-10-17", "2026-10-18"],
   "products": {
-    "m001": { "name": "秋の五目炊き込みおにぎり", "price": 360 },
+    "m001": { "name": "イカ明太おにぎり", "price": 330 },
     "m002": { "name": "うなぎ", "price": 420 },
     "m003": { "name": "肉そぼろ卵黄", "price": 360 },
     "m004": { "name": "卵黄", "price": 360 },

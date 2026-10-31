@@ -7,8 +7,8 @@ window.MenuCatalog = {
       items: [
         {
           id: "m001",
-          name: "秋の五目炊き込みおにぎり\n(10月限定)",
-          price: 360,
+          name: "イカ明太おにぎり\n(11月限定)",
+          price: 330,
         },
         {
           id: "m019",
