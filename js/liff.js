@@ -8,7 +8,6 @@
   function initLiff() {
     LiffCore.init()
       .then(function () {
-        LiffCore.syncLineOnlyUi();
         if (!liff.isInClient()) {
           alert("LINEアプリから開いてください");
           return;
@@ -35,7 +34,7 @@
   }
 
   if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
-    if (window.LiffCore) LiffCore.syncLineOnlyUi();
+    /* 送信ボタンは reserve.js がカート状態で制御 */
   } else if (window.LiffCore) {
     initLiff();
   }

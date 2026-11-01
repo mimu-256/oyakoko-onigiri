@@ -62,7 +62,7 @@
     {
       label: "その他",
       anchorId: "reserve-other",
-      notes: [{ newsHref: "/line-entry/news/side-dish", lineOnly: true }],
+      notes: [{ newsHref: "/line-entry/news/side-dish" }],
       items: [
         { id: "m018", name: "お惣菜セット", price: 550, image: "お惣菜.JPG" },
         { id: "m020", name: "唐揚げ", price: 550, image: "karaage.jpg" },
@@ -1291,10 +1291,6 @@
           newsLink.href = entry.newsHref;
           newsLink.textContent = "お惣菜のご案内";
           groupNote.appendChild(newsLink);
-          if (entry.lineOnly) {
-            groupNote.hidden = true;
-            groupNote.setAttribute("data-line-client-only", "");
-          }
         }
         sec.appendChild(groupNote);
       });
@@ -1632,7 +1628,6 @@
     sanitizeSideDishCartQty();
     renderMenu();
     scrollToMenuAnchorIfNeeded();
-    if (window.LiffCore && LiffCore.syncLineOnlyUi) LiffCore.syncLineOnlyUi();
     sync();
   }
 
