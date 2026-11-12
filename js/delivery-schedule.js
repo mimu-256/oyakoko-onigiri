@@ -314,6 +314,32 @@ window.DeliverySchedule = (function () {
     return dates;
   }
 
+  var SKELETON_SHIFT = { startHour: 10, startMin: 0, endHour: 17, endMin: 0 };
+
+  function buildWeekSkeleton(weekStart) {
+    var dates = getWeekDates(weekStart);
+    var start = minutesOf(SKELETON_SHIFT.startHour, SKELETON_SHIFT.startMin);
+    var end = minutesOf(SKELETON_SHIFT.endHour, SKELETON_SHIFT.endMin);
+    var rows = [];
+    for (var m = start; m < end; m += SLOT_MINUTES) {
+      var hour = Math.floor(m / 60);
+      var min = m % 60;
+      rows.push({
+        label: pad2(hour) + ":" + pad2(min),
+        hour: hour,
+        min: min,
+        cells: dates.map(function () {
+          return { status: "loading" };
+        }),
+      });
+    }
+    return {
+      weekStart: cloneDate(weekStart),
+      dates: dates,
+      rows: rows,
+    };
+  }
+
   function buildWeekGrid(weekStart) {
     var dates = getWeekDates(weekStart);
     var dateStrings = dates.map(toDateString);
@@ -461,6 +487,7 @@ window.DeliverySchedule = (function () {
     getMaxDate: getMaxDate,
     startOfWeekContaining: startOfWeekContaining,
     buildWeekGrid: buildWeekGrid,
+    buildWeekSkeleton: buildWeekSkeleton,
     canGoPrevWeek: canGoPrevWeek,
     canGoNextWeek: canGoNextWeek,
     isSlotAvailable: isSlotAvailable,

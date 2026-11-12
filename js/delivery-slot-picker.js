@@ -1,16 +1,12 @@
 window.DeliverySlotPicker = (function () {
   var schedule = window.DeliverySchedule;
-  var modal = null;
-  var backdrop = null;
-  var gridWrap = null;
-  var monthEl = null;
-  var prevBtn = null;
-  var nextBtn = null;
-  var confirmBtn = null;
+  var ui = null;
+  var mode = "modal";
   var onSelect = null;
   var weekStart = null;
   var pending = null;
   var selected = null;
+  var slotsReady = false;
 
   function pad2(n) {
     return n < 10 ? "0" + n : String(n);
@@ -20,30 +16,6 @@ window.DeliverySlotPicker = (function () {
     var next = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     next.setDate(next.getDate() + n);
     return next;
-  }
-
-  function openPicker(callback, current) {
-    if (!schedule || !modal) return;
-    onSelect = callback;
-    selected = current || null;
-    pending = current ? { date: current.date, hour: current.hour, min: current.min } : null;
-    weekStart = schedule.startOfWeekContaining(
-      current && current.date ? parseDate(current.date) : schedule.getMinDate()
-    );
-    document.body.classList.add("delivery-slot-open");
-    backdrop.classList.add("is-open");
-    modal.classList.add("is-open");
-    modal.setAttribute("aria-hidden", "false");
-    schedule.refreshBookings().then(renderGrid);
-  }
-
-  function closePicker() {
-    if (!modal) return;
-    document.body.classList.remove("delivery-slot-open");
-    backdrop.classList.remove("is-open");
-    modal.classList.remove("is-open");
-    modal.setAttribute("aria-hidden", "true");
-    pending = null;
   }
 
   function parseDate(str) {
@@ -58,15 +30,67 @@ window.DeliverySlotPicker = (function () {
     return "";
   }
 
-  function renderGrid() {
-    if (!gridWrap || !schedule) return;
-    var grid = schedule.buildWeekGrid(weekStart);
-    if (monthEl) monthEl.textContent = schedule.formatMonthLabel(grid.dates);
-    if (prevBtn) prevBtn.disabled = !schedule.canGoPrevWeek(weekStart);
-    if (nextBtn) nextBtn.disabled = !schedule.canGoNextWeek(weekStart);
-    if (confirmBtn) confirmBtn.disabled = !pending;
+  function closePicker() {
+    if (!ui || !ui.modal) return;
+    document.body.classList.remove("delivery-slot-open");
+    if (ui.backdrop) ui.backdrop.classList.remove("is-open");
+    ui.modal.classList.remove("is-open");
+    ui.modal.setAttribute("aria-hidden", "true");
+    pending = null;
+  }
 
-    gridWrap.innerHTML = "";
+  function openPicker(callback, current) {
+    if (!schedule || !ui || !ui.modal) return;
+    mode = "modal";
+    onSelect = callback;
+    selected = current || null;
+    pending = current ? { date: current.date, hour: current.hour, min: current.min } : null;
+    weekStart = schedule.startOfWeekContaining(
+      current && current.date ? parseDate(current.date) : schedule.getMinDate()
+    );
+    document.body.classList.add("delivery-slot-open");
+    if (ui.backdrop) ui.backdrop.classList.add("is-open");
+    ui.modal.classList.add("is-open");
+    ui.modal.setAttribute("aria-hidden", "false");
+    slotsReady = true;
+    schedule.refreshBookings().then(renderGrid);
+  }
+
+  function commitSelection() {
+    if (!pending || !onSelect) return;
+    if (!schedule.isSlotAvailable(pending.date, pending.hour, pending.min)) {
+      alert("この時間帯はすでに予約できません。別の時間をお選びください。");
+      schedule.refreshBookings().then(renderGrid);
+      return;
+    }
+    var slot = {
+      date: pending.date,
+      hour: String(pending.hour),
+      min: pad2(Number(pending.min)),
+      label: schedule.formatSlotLabel(pending.date, pending.hour, pending.min),
+    };
+    selected = slot;
+    onSelect(slot);
+    if (mode === "modal") closePicker();
+    else renderGrid();
+  }
+
+  function renderGrid() {
+    if (!ui || !ui.gridWrap || !schedule || !weekStart) return;
+    var grid = slotsReady
+      ? schedule.buildWeekGrid(weekStart)
+      : schedule.buildWeekSkeleton(weekStart);
+    if (ui.monthEl) {
+      ui.monthEl.textContent = slotsReady
+        ? schedule.formatMonthLabel(grid.dates)
+        : schedule.formatMonthLabel(grid.dates) + "（読み込み中…）";
+    }
+    if (ui.prevBtn) ui.prevBtn.disabled = !schedule.canGoPrevWeek(weekStart);
+    if (ui.nextBtn) ui.nextBtn.disabled = !schedule.canGoNextWeek(weekStart);
+    if (ui.confirmBtn) ui.confirmBtn.disabled = !pending;
+
+    ui.gridWrap.innerHTML = "";
+    ui.gridWrap.setAttribute("aria-busy", slotsReady ? "false" : "true");
     var table = document.createElement("table");
     table.className = "delivery-slot-grid";
     table.setAttribute("role", "grid");
@@ -106,21 +130,28 @@ window.DeliverySlotPicker = (function () {
       row.cells.forEach(function (cell) {
         var td = document.createElement("td");
         td.className = "delivery-slot-grid__cell";
-        if (cell.status === "open") {
+        if (cell.status === "loading") {
+          var loading = document.createElement("span");
+          loading.className = "delivery-slot-grid__slot delivery-slot-grid__slot--loading";
+          loading.setAttribute("aria-hidden", "true");
+          td.appendChild(loading);
+        } else if (cell.status === "open") {
           var btn = document.createElement("button");
           btn.type = "button";
           btn.className = "delivery-slot-grid__slot delivery-slot-grid__slot--open";
           btn.setAttribute("aria-label", schedule.formatSlotLabel(cell.date, cell.hour, cell.min));
           btn.textContent = "○";
+          var active = pending || selected;
           var isSelected =
-            pending &&
-            pending.date === cell.date &&
-            Number(pending.hour) === Number(cell.hour) &&
-            Number(pending.min) === Number(cell.min);
+            active &&
+            active.date === cell.date &&
+            Number(active.hour) === Number(cell.hour) &&
+            Number(active.min) === Number(cell.min);
           if (isSelected) btn.classList.add("is-selected");
           btn.addEventListener("click", function () {
             pending = { date: cell.date, hour: cell.hour, min: cell.min };
-            renderGrid();
+            if (mode === "inline") commitSelection();
+            else renderGrid();
           });
           td.appendChild(btn);
         } else if (cell.status === "blocked") {
@@ -141,68 +172,106 @@ window.DeliverySlotPicker = (function () {
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
-    gridWrap.appendChild(table);
+    ui.gridWrap.appendChild(table);
   }
 
-  function init() {
-    modal = document.getElementById("delivery-slot-modal");
-    backdrop = document.getElementById("delivery-slot-backdrop");
-    gridWrap = document.getElementById("delivery-slot-grid");
-    monthEl = document.getElementById("delivery-slot-month");
-    prevBtn = document.getElementById("delivery-slot-prev");
-    nextBtn = document.getElementById("delivery-slot-next");
-    confirmBtn = document.getElementById("delivery-slot-confirm");
-    if (!modal || !schedule) return;
-
-    if (backdrop) {
-      backdrop.addEventListener("click", closePicker);
-    }
-    var closeBtn = document.getElementById("delivery-slot-close");
-    if (closeBtn) closeBtn.addEventListener("click", closePicker);
-
-    if (prevBtn) {
-      prevBtn.addEventListener("click", function () {
+  function bindNav() {
+    if (!ui) return;
+    if (ui.prevBtn && !ui.prevBtn.dataset.deliverySlotBound) {
+      ui.prevBtn.dataset.deliverySlotBound = "1";
+      ui.prevBtn.addEventListener("click", function () {
         weekStart = addDays(weekStart, -7);
         renderGrid();
       });
     }
-    if (nextBtn) {
-      nextBtn.addEventListener("click", function () {
+    if (ui.nextBtn && !ui.nextBtn.dataset.deliverySlotBound) {
+      ui.nextBtn.dataset.deliverySlotBound = "1";
+      ui.nextBtn.addEventListener("click", function () {
         weekStart = addDays(weekStart, 7);
         renderGrid();
       });
     }
-    if (confirmBtn) {
-      confirmBtn.addEventListener("click", function () {
-        if (!pending || !onSelect) return;
-        if (!schedule.isSlotAvailable(pending.date, pending.hour, pending.min)) {
-          alert("この時間帯はすでに予約できません。別の時間をお選びください。");
-          schedule.refreshBookings().then(renderGrid);
-          return;
-        }
-        onSelect({
-          date: pending.date,
-          hour: String(pending.hour),
-          min: pad2(Number(pending.min)),
-          label: schedule.formatSlotLabel(pending.date, pending.hour, pending.min),
-        });
-        closePicker();
-      });
+    if (ui.confirmBtn && !ui.confirmBtn.dataset.deliverySlotBound) {
+      ui.confirmBtn.dataset.deliverySlotBound = "1";
+      ui.confirmBtn.addEventListener("click", commitSelection);
     }
+  }
+
+  function bindConfigRefresh() {
+    if (window.__deliverySlotPickerConfigBound) return;
+    window.__deliverySlotPickerConfigBound = true;
+    window.addEventListener("delivery-config-updated", function () {
+      if (!ui || !schedule) return;
+      if (mode === "modal" && ui.modal && !ui.modal.classList.contains("is-open")) return;
+      schedule.refreshBookings().then(renderGrid);
+    });
+  }
+
+  function init() {
+    ui = {
+      modal: document.getElementById("delivery-slot-modal"),
+      backdrop: document.getElementById("delivery-slot-backdrop"),
+      gridWrap: document.getElementById("delivery-slot-grid"),
+      monthEl: document.getElementById("delivery-slot-month"),
+      prevBtn: document.getElementById("delivery-slot-prev"),
+      nextBtn: document.getElementById("delivery-slot-next"),
+      confirmBtn: document.getElementById("delivery-slot-confirm"),
+    };
+    if (!ui.modal || !schedule) return;
+    mode = "modal";
+    bindNav();
+
+    if (ui.backdrop) {
+      ui.backdrop.addEventListener("click", closePicker);
+    }
+    var closeBtn = document.getElementById("delivery-slot-close");
+    if (closeBtn) closeBtn.addEventListener("click", closePicker);
 
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && modal.classList.contains("is-open")) closePicker();
+      if (e.key === "Escape" && ui.modal.classList.contains("is-open")) closePicker();
     });
 
-    window.addEventListener("delivery-config-updated", function () {
-      if (modal && modal.classList.contains("is-open")) {
-        schedule.refreshBookings().then(renderGrid);
-      }
+    bindConfigRefresh();
+  }
+
+  function initInline(opts) {
+    if (!schedule || !opts) return;
+    ui = {
+      modal: null,
+      backdrop: null,
+      gridWrap: document.getElementById(opts.gridId),
+      monthEl: document.getElementById(opts.monthId),
+      prevBtn: document.getElementById(opts.prevId),
+      nextBtn: document.getElementById(opts.nextId),
+      confirmBtn: null,
+    };
+    if (!ui.gridWrap) return;
+    mode = "inline";
+    onSelect = opts.onSelect;
+    selected = opts.current || null;
+    pending = selected
+      ? { date: selected.date, hour: selected.hour, min: selected.min }
+      : null;
+    weekStart = schedule.startOfWeekContaining(
+      selected && selected.date ? parseDate(selected.date) : schedule.getMinDate()
+    );
+    bindNav();
+    bindConfigRefresh();
+    slotsReady = false;
+    renderGrid();
+  }
+
+  function activateSlots() {
+    slotsReady = true;
+    return schedule.refreshBookings().then(renderGrid).catch(function () {
+      renderGrid();
     });
   }
 
   return {
     init: init,
+    initInline: initInline,
+    activateSlots: activateSlots,
     open: openPicker,
     close: closePicker,
   };

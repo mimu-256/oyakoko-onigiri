@@ -4,13 +4,19 @@
 
   var GROUPS = [
     {
-      label: "期間限定",
+      label: "限定",
       items: [
         {
           id: "m001",
-          name: "イカ明太おにぎり（11月限定）",
+          name: "イカ明太おにぎり\n(11月限定)",
           price: 330,
           image: "11_イカ明太おにぎり.png",
+        },
+        {
+          id: "m019",
+          name: "高菜明太\n(モバイルオーダー限定)",
+          price: 300,
+          image: "8_高菜明太.jpg",
         },
       ],
     },
@@ -54,18 +60,20 @@
     },
     {
       label: "その他",
-      notes: [
-        "だし巻き玉子は3個入りです",
-        "お惣菜は前日までのご予約が必要です。",
-      ],
+      anchorId: "reserve-other",
+      notes: [{ newsHref: "/line-entry/news/side-dish" }],
       items: [
+        { id: "m018", name: "お惣菜セット", price: 550, image: "お惣菜.JPG" },
+        { id: "m020", name: "唐揚げ", price: 550, image: "karaage.jpg" },
         { id: "m017", name: "だし巻き玉子", price: 290, image: "だしまき" },
-        { id: "m018", name: "お惣菜", price: 550, image: "お惣菜.JPG" },
+        { id: "m021", name: "豚汁", price: 290, image: "豚汁.jpg" },
       ],
     },
   ];
 
-  var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true };
+  var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true, m020: true, m021: true };
+  var SIDE_DISH_ITEM_IDS = { m018: true, m020: true };
+  var SIDE_DISH_MIN_ITEM_IDS = { m018: true, m020: true };
 
   var BENTO_FIXED_ID = "m005";
   var BENTO_LABEL = "お弁当";
@@ -90,7 +98,6 @@
 
   var MIN_ONIGIRI_QTY = 20;
   var MIN_SIDE_DISH_QTY = 5;
-  var SIDE_DISH_ITEM_ID = "m018";
 
   var cart = {};
   var bentoCart = {};
@@ -237,7 +244,12 @@
   function getBentoChoiceItems() {
     return getAllMenuItems()
       .filter(function (it) {
-        return it.id !== "m017" && it.id !== "m018";
+        return (
+          it.id !== "m017" &&
+          it.id !== "m018" &&
+          it.id !== "m020" &&
+          it.id !== "m021"
+        );
       })
       .slice()
       .sort(function (a, b) {
@@ -270,7 +282,11 @@
   }
 
   function totalSideDishQty() {
-    return getQty(SIDE_DISH_ITEM_ID);
+    var n = 0;
+    Object.keys(SIDE_DISH_ITEM_IDS).forEach(function (id) {
+      n += getQty(id);
+    });
+    return n;
   }
 
   function meetsBulkMinimum() {
@@ -340,6 +356,11 @@
         }
       }
     } catch (e) {}
+    sanitizeSideDishCartQty();
+  }
+
+  function requiresMinFive(id) {
+    return !!SIDE_DISH_MIN_ITEM_IDS[id];
   }
 
   function getQty(id) {
@@ -347,10 +368,39 @@
   }
 
   function setQty(id, q) {
-    if (q <= 0) delete cart[id];
-    else cart[id] = q;
+    q = Math.floor(Number(q));
+    if (!Number.isFinite(q) || q <= 0) delete cart[id];
+    else if (requiresMinFive(id) && q < MIN_SIDE_DISH_QTY) return;
+    else cart[id] = Math.min(99, q);
     saveCart();
     sync();
+  }
+
+  function bumpQty(id, delta) {
+    var cur = getQty(id);
+    if (delta > 0) {
+      if (requiresMinFive(id) && cur === 0) setQty(id, MIN_SIDE_DISH_QTY);
+      else setQty(id, cur + delta);
+      return;
+    }
+    if (delta < 0) {
+      if (requiresMinFive(id) && cur <= MIN_SIDE_DISH_QTY) setQty(id, 0);
+      else setQty(id, cur + delta);
+    }
+  }
+
+  function applySetQtyFromModal(id, q) {
+    var cur = getQty(id);
+    if (q === cur + 1) bumpQty(id, 1);
+    else if (q === cur - 1) bumpQty(id, -1);
+    else setQty(id, q);
+  }
+
+  function sanitizeSideDishCartQty() {
+    Object.keys(SIDE_DISH_MIN_ITEM_IDS).forEach(function (id) {
+      var q = cart[id];
+      if (q > 0 && q < MIN_SIDE_DISH_QTY) delete cart[id];
+    });
   }
 
   function clearCart() {
@@ -669,10 +719,19 @@
       h2.className = "reserve-group__title";
       h2.textContent = g.label;
       sec.appendChild(h2);
-      (g.notes || (g.note ? [g.note] : [])).forEach(function (text) {
+      (g.notes || (g.note ? [g.note] : [])).forEach(function (entry) {
+        var text = typeof entry === "string" ? entry : entry.text || "";
         var groupNote = document.createElement("p");
         groupNote.className = "reserve-group__note";
-        groupNote.textContent = text;
+        if (text) groupNote.appendChild(document.createTextNode(text));
+        if (entry && typeof entry === "object" && entry.newsHref) {
+          if (text) groupNote.appendChild(document.createTextNode(" "));
+          var newsLink = document.createElement("a");
+          newsLink.className = "reserve-group__note-link";
+          newsLink.href = entry.newsHref;
+          newsLink.textContent = "お惣菜のご案内";
+          groupNote.appendChild(newsLink);
+        }
         sec.appendChild(groupNote);
       });
       var grid = document.createElement("div");
@@ -686,9 +745,19 @@
   }
 
   function menuModalNote(id) {
-    if (id === "m017") return "だし巻き玉子は3個入りです";
-    if (id === "m018") return "お惣菜は前日までのご予約が必要です。";
+    if (id === "m017") {
+      return (
+        "だし巻き玉子は3個入りです\n" +
+        "原則お受け取りの2時間前までにご予約ください。"
+      );
+    }
+    if (id === "m018") return "お惣菜セットは2日前までのご予約が必要です（5個から）。";
+    if (id === "m020") return "唐揚げは2日前までのご予約が必要です（5個から）。";
     return "おにぎりは1つの価格です";
+  }
+
+  function menuCardNote() {
+    return "";
   }
 
   function buildMenuModalItems() {
@@ -708,7 +777,7 @@
           })(item.id),
           setQty: (function (id) {
             return function (q) {
-              setQty(id, q);
+              applySetQtyFromModal(id, q);
             };
           })(item.id),
         });
@@ -773,15 +842,22 @@
     btnP.textContent = "+";
     var id = it.id;
     btnM.addEventListener("click", function () {
-      setQty(id, getQty(id) - 1);
+      bumpQty(id, -1);
     });
     btnP.addEventListener("click", function () {
-      setQty(id, getQty(id) + 1);
+      bumpQty(id, 1);
     });
     step.appendChild(btnM);
     step.appendChild(qty);
     step.appendChild(btnP);
     body.appendChild(name);
+    var cardNote = menuCardNote();
+    if (cardNote) {
+      var hint = document.createElement("p");
+      hint.className = "reserve-card__note";
+      hint.textContent = cardNote;
+      body.appendChild(hint);
+    }
     body.appendChild(price);
     body.appendChild(step);
     card.appendChild(mediaBtn);
@@ -906,10 +982,10 @@
       b2.textContent = "+";
       (function (pid) {
         b1.addEventListener("click", function () {
-          setQty(pid, getQty(pid) - 1);
+          bumpQty(pid, -1);
         });
         b2.addEventListener("click", function () {
-          setQty(pid, getQty(pid) + 1);
+          bumpQty(pid, 1);
         });
       })(id);
       step.appendChild(b1);
@@ -976,9 +1052,9 @@
   if (checkoutBtn) {
     checkoutBtn.addEventListener("click", function () {
       if (!canSubmitBulk()) return;
-      window.location.href = window.LiffCore
-        ? LiffCore.appPath("reserve-bulk-checkout")
-        : "/reserve-bulk-checkout";
+      window.location.href = window.BulkLocal
+        ? BulkLocal.appPath("reserve-bulk-checkout")
+        : "/reserve-bulk-checkout.html";
     });
   }
 

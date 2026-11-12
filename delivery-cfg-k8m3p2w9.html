@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <title>配達枠設定</title>
-    <link rel="stylesheet" href="css/reserve.css?v=20251022d" />
-    <link rel="stylesheet" href="css/delivery-admin.css?v=20251022d" />
+    <link rel="stylesheet" href="css/reserve.css?v=20251102l" />
+    <link rel="stylesheet" href="css/delivery-admin.css?v=20251102m" />
   </head>
   <body class="delivery-admin-body">
     <div class="delivery-admin">
-      <header class="delivery-admin__head">
-        <h1>配達枠設定</h1>
-      </header>
       <p class="delivery-admin__status" id="admin-status" aria-live="polite" hidden></p>
 
       <section class="delivery-admin__grid-panel" aria-labelledby="delivery-admin-grid-title">
@@ -20,14 +17,9 @@
           <h2 class="delivery-slot-modal__title" id="delivery-admin-grid-title">配達日時の選択</h2>
           <div class="delivery-slot-modal__nav">
             <button type="button" class="delivery-slot-modal__nav-btn" id="delivery-admin-prev">前の週へ</button>
-            <p class="delivery-slot-modal__month" id="delivery-admin-month" aria-live="polite"></p>
+            <div class="delivery-slot-modal__month" id="delivery-admin-month" aria-live="polite"></div>
             <button type="button" class="delivery-slot-modal__nav-btn" id="delivery-admin-next">次の週へ</button>
           </div>
-          <ul class="delivery-slot-modal__legend" aria-label="凡例">
-            <li><span class="delivery-slot-grid__slot delivery-slot-grid__slot--open" aria-hidden="true">○</span> 予約可（チェックON）</li>
-            <li>チェックOFF＝その枠を休み</li>
-            <li><span class="delivery-slot-grid__slot delivery-slot-grid__slot--blocked" aria-hidden="true">×</span> 予約済み（変更不可）</li>
-          </ul>
         </header>
         <div class="delivery-slot-modal__body delivery-admin__grid-body" id="delivery-admin-grid"></div>
       </section>

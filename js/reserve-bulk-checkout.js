@@ -46,13 +46,18 @@
 
   function redirectIfInvalid() {
     if (!canSubmitBulk()) {
-      window.location.href = window.LiffCore
-        ? LiffCore.appPath("reserve-bulk")
-        : "/reserve-bulk";
+      window.location.href = window.BulkLocal
+        ? BulkLocal.appPath("reserve-bulk")
+        : "/reserve-bulk.html";
     }
   }
 
   redirectIfInvalid();
+
+  (function fixBackLink() {
+    var back = document.querySelector(".reserve-checkout-back a");
+    if (back && window.BulkLocal) back.href = BulkLocal.appPath("reserve-bulk");
+  })();
 
   var state = loadState();
   if (!state) return;
@@ -113,41 +118,16 @@
   var dateIn = document.getElementById("r-date");
   var hourIn = document.getElementById("r-hour");
   var minIn = document.getElementById("r-min");
-  var pickupDatetimeWrap = document.getElementById("pickup-datetime-wrap");
   var deliveryDatetimeWrap = document.getElementById("delivery-datetime-wrap");
-  var deliverySlotOpenBtn = document.getElementById("delivery-slot-open");
   var deliverySlotSelected = document.getElementById("delivery-slot-selected");
   var addressWrap = document.getElementById("delivery-address-wrap");
   var deliverySlot = null;
-
-  if (dateIn && hourIn && minIn) {
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    var start = new Date(today);
-    start.setDate(start.getDate() + 2);
-    var end = new Date(today);
-    end.setMonth(end.getMonth() + 1);
-    dateIn.min = toDateInputString(start);
-    dateIn.max = toDateInputString(end);
-    dateIn.value = toDateInputString(start);
-    hourIn.value = "10";
-    minIn.value = "00";
-  }
-
-  function setPickupDatetimeRequired(required) {
-    if (dateIn) dateIn.required = required;
-    if (hourIn) hourIn.required = required;
-    if (minIn) minIn.required = required;
-  }
 
   function clearDeliverySlot() {
     deliverySlot = null;
     if (deliverySlotSelected) {
       deliverySlotSelected.textContent = "";
       deliverySlotSelected.hidden = true;
-    }
-    if (deliverySlotOpenBtn) {
-      deliverySlotOpenBtn.textContent = "配達日時を選ぶ";
     }
   }
 
@@ -157,11 +137,8 @@
     if (hourIn) hourIn.value = slot.hour;
     if (minIn) minIn.value = slot.min;
     if (deliverySlotSelected) {
-      deliverySlotSelected.textContent = slot.label;
+      deliverySlotSelected.textContent = "選択中：" + slot.label;
       deliverySlotSelected.hidden = false;
-    }
-    if (deliverySlotOpenBtn) {
-      deliverySlotOpenBtn.textContent = "配達日時を変更する";
     }
   }
 
@@ -180,64 +157,37 @@
     });
   }
 
-  function updateDeliveryFields() {
-    var yesEl = document.getElementById("r-delivery-yes");
-    var delivery = yesEl && yesEl.checked;
-    if (addressWrap) addressWrap.hidden = !delivery;
-    if (pickupDatetimeWrap) pickupDatetimeWrap.hidden = delivery;
-    if (deliveryDatetimeWrap) deliveryDatetimeWrap.hidden = !delivery;
-    setAddressFieldRequired(!!delivery);
-    setPickupDatetimeRequired(!delivery);
-    if (!delivery) {
-      clearDeliverySlot();
-      if (dateIn && !dateIn.value) {
-        var start = window.DeliverySchedule
-          ? DeliverySchedule.getMinDate()
-          : null;
-        if (start) dateIn.value = toDateInputString(start);
-      }
-      if (hourIn && !hourIn.value) hourIn.value = "10";
-      if (minIn && !minIn.value) minIn.value = "00";
-    } else {
-      clearDeliverySlot();
-      if (dateIn) dateIn.value = "";
-      if (hourIn) hourIn.value = "";
-      if (minIn) minIn.value = "";
-    }
-  }
-
-  document.querySelectorAll('input[name="delivery_wanted"]').forEach(function (radio) {
-    radio.addEventListener("change", updateDeliveryFields);
-  });
-  updateDeliveryFields();
+  if (addressWrap) addressWrap.hidden = false;
+  if (deliveryDatetimeWrap) deliveryDatetimeWrap.hidden = false;
+  setAddressFieldRequired(true);
 
   function initDeliveryPicker() {
     if (!window.DeliverySchedule || !window.DeliverySlotPicker) return;
-    DeliverySlotPicker.init();
-    if (deliverySlotOpenBtn) {
-      deliverySlotOpenBtn.addEventListener("click", function () {
-        DeliverySlotPicker.open(function (slot) {
-          applyDeliverySlot(slot);
-        }, deliverySlot);
-      });
+    DeliverySlotPicker.initInline({
+      gridId: "checkout-delivery-grid",
+      monthId: "checkout-delivery-month",
+      prevId: "checkout-delivery-prev",
+      nextId: "checkout-delivery-next",
+      current: deliverySlot,
+      onSelect: applyDeliverySlot,
+    });
+  }
+
+  function finishDeliveryPickerLoad() {
+    if (window.DeliverySlotPicker && DeliverySlotPicker.activateSlots) {
+      return DeliverySlotPicker.activateSlots();
     }
   }
 
+  initDeliveryPicker();
+
   if (window.DeliverySchedule) {
     DeliverySchedule.load()
-      .then(initDeliveryPicker)
-      .catch(function () {
-        initDeliveryPicker();
-      });
-  }
-
-  function deliveryWanted() {
-    var yesEl = document.getElementById("r-delivery-yes");
-    return yesEl && yesEl.checked;
+      .then(finishDeliveryPickerLoad)
+      .catch(finishDeliveryPickerLoad);
   }
 
   function validateDeliverySlot() {
-    if (!deliveryWanted()) return true;
     if (deliverySlot && deliverySlot.date) return true;
     alert("配達日時を選んでください。");
     return false;
