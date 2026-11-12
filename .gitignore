@@ -1,6 +1,9 @@
 # 個人用タスク（ローカルのみ）
 タスク管理.md
 
+# 営業調査（ローカルのみ）
+調査/
+
 # 作業メモ（ローカルのみ）
 作業メモ*.txt
 
@@ -16,6 +19,9 @@ firebase-debug.*.log
 Thumbs.db
 *.log
 Untitled-*.png
+
+# 配達枠管理 QR（ローカル生成・本番でも手元のみ）
+images/delivery-cfg-k8m3p2w9-qr.png
 
 # Square ローカル検証（トークン・出力の置き場）
 scripts/square-verify/.local/
