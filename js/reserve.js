@@ -11,7 +11,7 @@
           id: "m001",
           name: "イカ明太おにぎり\n(11月限定)",
           price: 330,
-          image: "11_イカ明太おにぎり.png",
+          image: "11_イカ明太おにぎり.png",
         },
         {
           id: "m019",
@@ -114,7 +114,7 @@
   function itemImage(id) {
     var it = ITEM_MAP[id];
     if (!it) return DUMMY;
-    var base = it.image || it.name;
+    var base = String(it.image || it.name).normalize("NFC");
     if (/\.(jpe?g|png|webp|gif)$/i.test(base)) {
       return "images/menu/" + base;
     }
