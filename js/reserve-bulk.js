@@ -61,7 +61,6 @@
     {
       label: "その他",
       anchorId: "reserve-other",
-      notes: [{ newsHref: "/line-entry/news/side-dish" }],
       items: [
         { id: "m018", name: "お惣菜セット", price: 550, image: "お惣菜.JPG" },
         { id: "m020", name: "唐揚げ", price: 550, image: "karaage.jpg" },
