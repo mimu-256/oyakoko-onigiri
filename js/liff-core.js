@@ -17,6 +17,37 @@ window.LiffCore = {
     return "https://liff.line.me/" + this.LIFF_ID + "/" + p;
   },
 
+  /** 予約ページへ（商品 m*** は ?item=、セクションは #） */
+  reserveScrollHref: function (anchor) {
+    var a = String(anchor || "").replace(/^#/, "").trim();
+    if (!a) return this.appPath("reserve");
+    if (a === "reserve-other") return this.appPath("reserve") + "#" + a;
+    if (/^m\d{3}$/.test(a)) {
+      return this.appPath("reserve") + "?item=" + encodeURIComponent(a);
+    }
+    return this.appPath("reserve") + "#" + a;
+  },
+
+  /**
+   * 公式LINEトーク用 LIFF URL（line-entry 経由で next に hash を載せる）
+   * お惣菜お知らせの「さっそく注文する」と同じスクロール挙動
+   */
+  reserveLiffUrl: function (anchor) {
+    var dest = this.reserveScrollHref(anchor);
+    return this.liffPageUrl(
+      "line-entry?next=" + encodeURIComponent(dest)
+    );
+  },
+
+  /** 公式LINE用：豚汁（m021）までスクロール */
+  tonjiruReserveLiffUrl: function () {
+    return this.liffPageUrl(this.reserveScrollHref("m021"));
+  },
+
+  currentReturnPath: function () {
+    return location.pathname + location.search + location.hash;
+  },
+
   syncLineOnlyUi: function () {
     var show = false;
     if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
@@ -34,8 +65,21 @@ window.LiffCore = {
   },
 
   login: function (options) {
-    var uri =
-      options && options.redirectUri ? String(options.redirectUri) : this.entryUrl();
+    var uri;
+    if (options && options.redirectUri) {
+      uri = String(options.redirectUri);
+    } else {
+      var next = this.currentReturnPath();
+      if (next.indexOf("/line-entry/") === 0) {
+        uri =
+          location.origin +
+          this.ENTRY_PATH +
+          "?next=" +
+          encodeURIComponent(next);
+      } else {
+        uri = this.entryUrl();
+      }
+    }
     liff.login({ redirectUri: uri });
   },
 
@@ -44,6 +88,7 @@ window.LiffCore = {
     var params = new URLSearchParams(location.search);
     var next = params.get("next");
     if (next && next.charAt(0) === "/" && next.indexOf("/line-entry/") === 0 && next.indexOf("..") === -1) {
+      if (next.indexOf("#") === -1) next += location.hash || "";
       return next;
     }
     var state = params.get("liff.state");
@@ -51,8 +96,14 @@ window.LiffCore = {
       try {
         var dest = decodeURIComponent(state);
         if (dest.charAt(0) !== "/") dest = "/" + dest;
-        if (dest.indexOf("/line-entry/") === 0 && dest.indexOf("..") === -1) return dest;
+        if (dest.indexOf("/line-entry/") === 0 && dest.indexOf("..") === -1) {
+          return dest + (location.hash || "");
+        }
       } catch (e) {}
+    }
+    var item = params.get("item");
+    if (item && /^m\d{3}$/.test(item)) {
+      return this.appPath("reserve") + "?item=" + encodeURIComponent(item);
     }
     return this.appPath("reserve");
   },

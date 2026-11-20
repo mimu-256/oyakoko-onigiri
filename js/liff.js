@@ -28,8 +28,7 @@
         }
       })
       .catch(function (err) {
-        console.error(err);
-        notifyError(LiffCore.formatError(err));
+        console.error("LIFF init", err);
       });
   }
 

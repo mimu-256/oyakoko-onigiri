@@ -37,7 +37,21 @@
       }
 
       setStatus("ページへ移動します…", { state: "loading" });
-      location.replace(LiffCore.resolvePostLoginPath());
+      var dest = LiffCore.resolvePostLoginPath();
+      try {
+        var hashIdx = dest.indexOf("#");
+        if (hashIdx !== -1) {
+          var anchor = decodeURIComponent(dest.slice(hashIdx + 1));
+          if (anchor) {
+            sessionStorage.setItem("oyakoko_reserve_scroll_target_v1", anchor);
+          }
+        }
+        var itemMatch = dest.match(/[?&]item=(m\d{3}|reserve-other)/);
+        if (itemMatch) {
+          sessionStorage.setItem("oyakoko_reserve_scroll_target_v1", itemMatch[1]);
+        }
+      } catch (e) {}
+      location.replace(dest);
     })
     .catch(function (err) {
       console.error(err);

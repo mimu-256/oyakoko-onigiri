@@ -2,6 +2,21 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
+    <title>メニュー｜親孝行おにぎり</title>
+    <style>
+      .tonjiru-opening body > :not(#tonjiru-opening-status) { display: none !important; }
+      #tonjiru-opening-status {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: #fff;
+        color: #222;
+        font: 1rem system-ui, sans-serif;
+        text-align: center;
+      }
+    </style>
     <script>
       /* LIFF（Endpoint=/）: トップに着地したら予約入口へ。通常のブラウザ閲覧はそのまま */
       (function () {
@@ -11,6 +26,39 @@
         if (search) {
           try {
             var state = new URLSearchParams(search).get("liff.state");
+            if (state && /^\/?line-entry\/reserve\?item=m021(?:$|[&?#])/.test(state)) {
+              // 豚汁リンクだけ、LIFFの転送中に通常のメニューを表示しない。
+              document.documentElement.classList.add("tonjiru-opening");
+              document.title = "ご予約 - 親孝行おにぎり";
+              document.addEventListener("DOMContentLoaded", function () {
+                var status = document.createElement("div");
+                status.id = "tonjiru-opening-status";
+                status.setAttribute("role", "status");
+                status.textContent = "ご予約ページを開いています…";
+                document.body.appendChild(status);
+                setTimeout(function () {
+                  status.textContent = "ページを開けない場合は、LINEのトークからリンクを開き直してください。";
+                }, 10000);
+              });
+            }
+            // 豚汁直リンクだけは、入口URLを変更せずLIFF SDKの2次リダイレクトに任せる。
+            // 既存のリッチメニュー等は従来の処理を使う。
+            if (state === "/line-entry/reserve?item=m021") {
+              var core = document.createElement("script");
+              core.src = "/js/liff-core.js?v=20251107c";
+              core.onload = function () {
+                var sdk = document.createElement("script");
+                sdk.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
+                sdk.onload = function () {
+                  LiffCore.init().catch(function (err) {
+                    console.error(err);
+                  });
+                };
+                document.head.appendChild(sdk);
+              };
+              document.head.appendChild(core);
+              return;
+            }
             if (state) {
               var dest = decodeURIComponent(state);
               if (dest.charAt(0) !== "/") dest = "/" + dest;
@@ -40,7 +88,6 @@
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>メニュー｜親孝行おにぎり</title>
     <meta
       name="description"
       content="埼玉県鴻巣市のおにぎり専門店「親孝行おにぎり」のメニュー・価格一覧。ご予約はLINEまたはお電話にて。"

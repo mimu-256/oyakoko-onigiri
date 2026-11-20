@@ -67,12 +67,13 @@
         { id: "m018", name: "お惣菜セット", price: 550, image: "お惣菜.JPG" },
         { id: "m020", name: "唐揚げ", price: 550, image: "karaage.jpg" },
         { id: "m017", name: "だし巻き玉子", price: 290, image: "だしまき" },
+        { id: "m021", name: "豚汁", price: 290, image: "豚汁.jpg" },
       ],
     },
   ];
 
   /** ご注文テキストではおにぎりの後に並べる（その他・準備中品も含む） */
-  var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true, m020: true };
+  var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true, m020: true, m021: true };
   var MIN_QTY_SIDE_DISH = 5;
   var SIDE_DISH_MIN_ITEM_IDS = { m018: true, m020: true };
 
@@ -249,7 +250,12 @@
   function getBentoChoiceItems() {
     return getAllMenuItems()
       .filter(function (it) {
-        return it.id !== "m017" && it.id !== "m018" && it.id !== "m020";
+        return (
+          it.id !== "m017" &&
+          it.id !== "m018" &&
+          it.id !== "m020" &&
+          it.id !== "m021"
+        );
       })
       .slice()
       .sort(function (a, b) {
@@ -324,10 +330,31 @@
     return cart[id] > 0 ? cart[id] : 0;
   }
 
+  function isStoreClosedMode() {
+    return !!(window.RESERVE_STORE_STATUS && RESERVE_STORE_STATUS.closed);
+  }
+
+  function storeClosedMessage() {
+    if (window.RESERVE_STORE_STATUS && RESERVE_STORE_STATUS.message) {
+      return String(RESERVE_STORE_STATUS.message);
+    }
+    return (
+      "大変申し訳ございません。\n本日の営業は終了いたしました。\n明日以降はご予約できます。"
+    );
+  }
+
   function itemSoldOutMessage(id) {
     var it = ITEM_MAP[id];
     if (!it || !it.soldOut) return "";
     return it.soldOutMessage || "申し訳ございません。\n本日売り切れです。";
+  }
+
+  function hasStoreClosedPickupConflict(dateStr) {
+    return (
+      isStoreClosedMode() &&
+      soldOutAppliesToPickupDate(dateStr) &&
+      cartTotals().count > 0
+    );
   }
 
   /** 売り切れが受取日に効くのは「本日受取」のみ（明日以降は予約可） */
@@ -346,6 +373,12 @@
   }
 
   function soldOutConflictMessage(dateStr) {
+    if (hasStoreClosedPickupConflict(dateStr)) {
+      return (
+        storeClosedMessage() +
+        "\n本日お受け取りのご予約はできません。受取日を明日以降に変更してください。"
+      );
+    }
     var ids = cartSoldOutConflictsForDate(dateStr);
     if (!ids.length) return "";
     var names = ids.map(function (id) {
@@ -381,6 +414,7 @@
 
   function hasCartPickupConflict(dateStr) {
     if (!dateStr) return false;
+    if (hasStoreClosedPickupConflict(dateStr)) return true;
     return (
       cartSoldOutConflictsForDate(dateStr).length > 0 ||
       dashimakiBlockedForPickupDate(dateStr)
@@ -487,7 +521,11 @@
     var today = new Date();
     today.setHours(0, 0, 0, 0);
     var start = cloneDay(today);
-    if (hasBentoInCart() || hasSideDishInCart()) start.setDate(start.getDate() + 2);
+    if (hasBentoInCart() || hasSideDishInCart()) {
+      start.setDate(start.getDate() + 2);
+    } else if (isStoreClosedMode()) {
+      start.setDate(start.getDate() + 1);
+    }
     return start;
   }
 
@@ -1266,10 +1304,23 @@
       "</div>";
   }
 
+  function appendStoreClosedBanner(parent) {
+    if (!isStoreClosedMode()) return;
+    var box = document.createElement("div");
+    box.className = "reserve-store-closed";
+    box.setAttribute("role", "alert");
+    var text = document.createElement("p");
+    text.className = "reserve-store-closed__text";
+    text.textContent = storeClosedMessage();
+    box.appendChild(text);
+    parent.appendChild(box);
+  }
+
   function renderMenu() {
     if (!root) return;
     root.classList.remove("reserve-menu-root--loading");
     root.innerHTML = "";
+    appendStoreClosedBanner(root);
     GROUPS.forEach(function (g) {
       var sec = document.createElement("section");
       sec.className = "reserve-group";
@@ -1363,6 +1414,7 @@
     var soldMsg = itemSoldOutMessage(it.id);
     var card = document.createElement("article");
     card.className = "reserve-card" + (soldMsg ? " reserve-card--sold-out" : "");
+    card.id = it.id;
     card.setAttribute("data-id", it.id);
     var mediaBtn = document.createElement("button");
     mediaBtn.type = "button";
@@ -1613,23 +1665,173 @@
     backdrop.setAttribute("aria-hidden", "true");
   }
 
-  function scrollToMenuAnchorIfNeeded() {
-    var raw = location.hash;
-    if (!raw || raw.length < 2) return;
-    var id = decodeURIComponent(raw.slice(1));
+  var MENU_SCROLL_STORAGE = "oyakoko_reserve_scroll_target_v1";
+
+  function isMenuScrollTargetId(id) {
+    if (!id) return false;
+    if (id === "reserve-other") return true;
+    if (/^m\d{3}$/.test(id)) return true;
+    return false;
+  }
+
+  function rememberMenuScrollTarget(id) {
+    if (!isMenuScrollTargetId(id)) return;
+    try {
+      sessionStorage.setItem(MENU_SCROLL_STORAGE, id);
+    } catch (e) {}
+  }
+
+  function clearRememberedMenuScrollTarget() {
+    try {
+      sessionStorage.removeItem(MENU_SCROLL_STORAGE);
+    } catch (e) {}
+  }
+
+  function getMenuScrollTargetId() {
+    var id = "";
+    try {
+      var itemParam = new URLSearchParams(location.search).get("item");
+      if (itemParam && isMenuScrollTargetId(itemParam)) id = itemParam;
+    } catch (e) {}
+    if (!id) {
+      var raw = location.hash;
+      if (raw && raw.length >= 2) {
+        var fromHash = decodeURIComponent(raw.slice(1));
+        if (isMenuScrollTargetId(fromHash)) id = fromHash;
+      }
+    }
+    if (!id) {
+      try {
+        var stored = sessionStorage.getItem(MENU_SCROLL_STORAGE);
+        if (isMenuScrollTargetId(stored)) id = stored;
+      } catch (e2) {}
+    }
+    if (id) rememberMenuScrollTarget(id);
+    return id;
+  }
+
+  var menuScrollSession = null;
+  var tonjiruJumpStarted = false;
+
+  function cancelMenuScrollRetries() {
+    if (!menuScrollSession) return;
+    clearInterval(menuScrollSession.timer);
+    clearTimeout(menuScrollSession.giveUp);
+    menuScrollSession = null;
+  }
+
+  function scrollToMenuTargetElement(id) {
+    if (!root || !id) return null;
+    if (id === "reserve-other") return document.getElementById("reserve-other");
     var el = document.getElementById(id);
-    if (!el || !root || !root.contains(el)) return;
-    requestAnimationFrame(function () {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    if ((!el || !root.contains(el)) && /^m\d{3}$/.test(id)) {
+      el = root.querySelector('.reserve-card[data-id="' + id + '"]');
+    }
+    if (!el || !root.contains(el)) return null;
+    return el;
+  }
+
+  function scrollToMenuAnchorIfNeeded() {
+    if (!root || root.classList.contains("reserve-menu-root--loading")) return false;
+    var id = getMenuScrollTargetId();
+    if (!id) return false;
+    var el = scrollToMenuTargetElement(id);
+    if (!el) return false;
+    var beforeY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    if (id === "m021") {
+      clearRememberedMenuScrollTarget();
+      if (tonjiruJumpStarted) return true;
+      tonjiruJumpStarted = true;
+      var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function targetY(card) {
+        var currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        return Math.max(0, card.getBoundingClientRect().top + currentY - 12);
+      }
+      if (reduceMotion || !window.requestAnimationFrame) {
+        window.scrollTo(0, targetY(el));
+        return true;
+      }
+      var started = null;
+      var cancelled = false;
+      function stopTonjiruJump() {
+        cancelled = true;
+        window.removeEventListener("touchstart", stopTonjiruJump);
+        window.removeEventListener("wheel", stopTonjiruJump);
+      }
+      window.addEventListener("touchstart", stopTonjiruJump, { passive: true });
+      window.addEventListener("wheel", stopTonjiruJump, { passive: true });
+      window.requestAnimationFrame(function moveToTonjiru(now) {
+        if (cancelled) return;
+        var card = scrollToMenuTargetElement("m021");
+        if (!card) {
+          stopTonjiruJump();
+          return;
+        }
+        if (started === null) started = now;
+        var progress = Math.min(1, Math.max(0, (now - started - 120) / 900));
+        var eased = progress * progress * (3 - 2 * progress);
+        var scroller = document.scrollingElement || document.documentElement;
+        var destination = Math.min(targetY(card), Math.max(0, scroller.scrollHeight - scroller.clientHeight));
+        if (progress > 0) window.scrollTo(0, beforeY + (destination - beforeY) * eased);
+        if (progress < 1) {
+          window.requestAnimationFrame(moveToTonjiru);
+        } else {
+          stopTonjiruJump();
+          if (typeof card.animate === "function") {
+            card.animate(
+              [{ outline: "3px solid #1f5a78" }, { outline: "3px solid transparent" }],
+              { duration: 1250, easing: "ease-out" }
+            );
+          }
+        }
+      });
+      return true;
+    }
+    try {
+      el.scrollIntoView({ behavior: "auto", block: "start" });
+    } catch (e) {}
+    var top = 0;
+    try {
+      top = el.getBoundingClientRect().top + beforeY - 12;
+      window.scrollTo(0, Math.max(0, top));
+    } catch (e2) {}
+    var afterY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var moved = Math.abs(afterY - beforeY) > 8;
+    var nearTarget = el.getBoundingClientRect().top < 120;
+    if (!moved && !nearTarget && top > 80) return false;
+    clearRememberedMenuScrollTarget();
+    return true;
+  }
+
+  /** メニュー表示が遅い端末向け（最大30秒・250ms間隔） */
+  function scheduleMenuScrollRetries() {
+    if (!getMenuScrollTargetId()) return;
+    cancelMenuScrollRetries();
+    var started = Date.now();
+    var maxMs = 30000;
+    var timer = setInterval(function () {
+      if (scrollToMenuAnchorIfNeeded()) {
+        cancelMenuScrollRetries();
+        return;
+      }
+      if (Date.now() - started >= maxMs) cancelMenuScrollRetries();
+    }, 250);
+    var giveUp = setTimeout(cancelMenuScrollRetries, maxMs + 50);
+    menuScrollSession = { timer: timer, giveUp: giveUp };
+    scrollToMenuAnchorIfNeeded();
   }
 
   function bootMenuAndCart() {
     sanitizeSideDishCartQty();
     renderMenu();
-    scrollToMenuAnchorIfNeeded();
+    scheduleMenuScrollRetries();
     sync();
+    syncStoreClosedPopup();
   }
+
+  window.addEventListener("hashchange", function () {
+    scheduleMenuScrollRetries();
+  });
 
   loadCart();
   sanitizeSideDishCartQty();
@@ -1664,6 +1866,10 @@
 
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
+    if (isStoreClosedPopupOpen()) {
+      closeStoreClosedPopup(true);
+      return;
+    }
     if (bentoModal && bentoModal.classList.contains("is-open")) {
       closeBentoModal();
       return;
@@ -1683,6 +1889,87 @@
   var minIn = document.getElementById("r-min");
   var dateHintEl = document.getElementById("r-date-hint");
   soldOutConflictEl = document.getElementById("r-soldout-conflict-submit");
+  var storeClosedPopup = document.getElementById("store-closed-popup");
+  var storeClosedPopupBackdrop = document.getElementById("store-closed-popup-backdrop");
+  var storeClosedPopupText = document.getElementById("store-closed-popup-text");
+  var storeClosedPopupOk = document.getElementById("store-closed-popup-ok");
+  var STORE_CLOSED_POPUP_SEEN_PREFIX = "oyakoko_store_closed_popup_seen_";
+
+  function storeClosedPopupSeenKey() {
+    return STORE_CLOSED_POPUP_SEEN_PREFIX + toDateInputString(new Date());
+  }
+
+  function wasStoreClosedPopupSeen() {
+    try {
+      return sessionStorage.getItem(storeClosedPopupSeenKey()) === "1";
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function markStoreClosedPopupSeen() {
+    try {
+      sessionStorage.setItem(storeClosedPopupSeenKey(), "1");
+    } catch (err) {}
+  }
+
+  function clearStoreClosedPopupSeen() {
+    try {
+      sessionStorage.removeItem(storeClosedPopupSeenKey());
+    } catch (err) {}
+  }
+
+  function isStoreClosedPopupOpen() {
+    return !!(storeClosedPopup && storeClosedPopup.classList.contains("is-open"));
+  }
+
+  function closeStoreClosedPopup(markSeen) {
+    if (!storeClosedPopup || !storeClosedPopupBackdrop) return;
+    storeClosedPopup.classList.remove("is-open");
+    storeClosedPopupBackdrop.classList.remove("is-open");
+    storeClosedPopup.setAttribute("aria-hidden", "true");
+    storeClosedPopupBackdrop.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("store-closed-popup-open");
+    document.body.classList.remove("store-closed-popup-open");
+    if (markSeen) markStoreClosedPopupSeen();
+  }
+
+  function openStoreClosedPopup() {
+    if (!storeClosedPopup || !storeClosedPopupBackdrop || !storeClosedPopupText) return;
+    storeClosedPopupText.textContent = storeClosedMessage();
+    storeClosedPopup.classList.add("is-open");
+    storeClosedPopupBackdrop.classList.add("is-open");
+    storeClosedPopup.setAttribute("aria-hidden", "false");
+    storeClosedPopupBackdrop.setAttribute("aria-hidden", "false");
+    document.documentElement.classList.add("store-closed-popup-open");
+    document.body.classList.add("store-closed-popup-open");
+    if (storeClosedPopupOk) storeClosedPopupOk.focus();
+  }
+
+  function syncStoreClosedPopup() {
+    if (!storeClosedPopup) return;
+    if (!isStoreClosedMode()) {
+      if (isStoreClosedPopupOpen()) closeStoreClosedPopup(false);
+      clearStoreClosedPopupSeen();
+      return;
+    }
+    if (isStoreClosedPopupOpen()) {
+      if (storeClosedPopupText) storeClosedPopupText.textContent = storeClosedMessage();
+      return;
+    }
+    if (!wasStoreClosedPopupSeen()) openStoreClosedPopup();
+  }
+
+  if (storeClosedPopupOk) {
+    storeClosedPopupOk.addEventListener("click", function () {
+      closeStoreClosedPopup(true);
+    });
+  }
+  if (storeClosedPopupBackdrop) {
+    storeClosedPopupBackdrop.addEventListener("click", function () {
+      closeStoreClosedPopup(true);
+    });
+  }
 
   function updateDateConstraints() {
     if (!dateIn) return;
@@ -1771,19 +2058,49 @@
     updateSubmitButton();
   }
 
+  function refreshStoreClosedByClock() {
+    if (!window.MenuAvailability || !window.RESERVE_STORE_STATUS) return;
+    var raw = !!RESERVE_STORE_STATUS.storeClosedRaw;
+    if (!raw) return;
+    var next = MenuAvailability.isStoreClosedEffective(raw);
+    if (next === RESERVE_STORE_STATUS.closed) return;
+    RESERVE_STORE_STATUS.closed = next;
+    renderMenu();
+    sync();
+    updateDateConstraints();
+    updateSoldOutConflictUi();
+    updateSubmitButton();
+    syncStoreClosedPopup();
+  }
+
   if (window.MenuAvailability && MenuAvailability.isConfigured()) {
     showMenuLoading();
+    var menuBooted = false;
+    function ensureMenuBoot() {
+      if (menuBooted) return;
+      menuBooted = true;
+      bootMenuAndCart();
+    }
+    var menuLoadTimeout = setTimeout(ensureMenuBoot, 15000);
     MenuAvailability.loadAndApply(ITEM_MAP)
       .then(function () {
-        bootMenuAndCart();
+        clearTimeout(menuLoadTimeout);
+        ensureMenuBoot();
         MenuAvailability.watch(ITEM_MAP, function () {
           purgeUnavailableFromCart();
           renderMenu();
+          scheduleMenuScrollRetries();
           sync();
+          updateDateConstraints();
+          updateSoldOutConflictUi();
+          updateSubmitButton();
+          syncStoreClosedPopup();
         });
+        setInterval(refreshStoreClosedByClock, 60000);
       })
       .catch(function () {
-        bootMenuAndCart();
+        clearTimeout(menuLoadTimeout);
+        ensureMenuBoot();
       });
   } else {
     bootMenuAndCart();
@@ -1802,6 +2119,8 @@
   (function showBulkLocalLink() {
     var el = document.getElementById("reserve-bulk-local-link");
     if (!el || !window.LiffEnv || !LiffEnv.isLocalDev()) return;
+    var a = el.querySelector("a");
+    if (a) a.href = "/reserve-bulk.html";
     el.hidden = false;
   })();
 

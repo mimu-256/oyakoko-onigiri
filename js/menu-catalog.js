@@ -58,6 +58,7 @@ window.MenuCatalog = {
         { id: "m018", name: "お惣菜セット", price: 550 },
         { id: "m020", name: "唐揚げ", price: 550 },
         { id: "m017", name: "だし巻き玉子", price: 290 },
+        { id: "m021", name: "豚汁", price: 290 },
       ],
     },
   ],

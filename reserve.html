@@ -10,12 +10,26 @@
       content="おにぎりのWeb予約。品目と数量を選び、来店払いでお受け取り。お会計は店頭にてお願いします。"
     />
     <link rel="icon" href="images/logo.jpg" type="image/jpeg" />
+    <script>
+      try {
+        var id = "";
+        var item = new URLSearchParams(location.search).get("item");
+        // LINE内で転送情報が商品指定に連結された場合も、豚汁の表示位置だけ復元する。
+        if (item && /^m021\?liff\.state=/.test(item)) item = "m021";
+        if (item && (item === "reserve-other" || /^m\d{3}$/.test(item))) id = item;
+        if (!id && location.hash.length > 1) {
+          var h = decodeURIComponent(location.hash.slice(1));
+          if (h === "reserve-other" || /^m\d{3}$/.test(h)) id = h;
+        }
+        if (id) sessionStorage.setItem("oyakoko_reserve_scroll_target_v1", id);
+      } catch (e) {}
+    </script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
     <link rel="stylesheet" href="css/style.css?v=20250904" />
-    <link rel="stylesheet" href="css/reserve.css?v=20251101a" />
+    <link rel="stylesheet" href="css/reserve.css?v=20251107d" />
   </head>
   <body class="reserve-body">
     <div class="site-content">
@@ -107,6 +121,22 @@
       </div>
     </div>
     -->
+
+    <div class="store-closed-popup-backdrop" id="store-closed-popup-backdrop" aria-hidden="true"></div>
+    <div
+      class="store-closed-popup"
+      id="store-closed-popup"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="store-closed-popup-title"
+      aria-hidden="true"
+    >
+      <div class="store-closed-popup__panel">
+        <h2 class="store-closed-popup__title" id="store-closed-popup-title">ご案内</h2>
+        <p class="store-closed-popup__text" id="store-closed-popup-text"></p>
+        <button type="button" class="store-closed-popup__ok" id="store-closed-popup-ok">OK</button>
+      </div>
+    </div>
 
     <div class="reserve-sheet-backdrop" id="sheet-backdrop" aria-hidden="true"></div>
     <div class="reserve-sheet" id="reserve-sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="sheet-title">
@@ -226,17 +256,18 @@
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js?v=20251011c"></script>
-    <script src="js/menu-availability.js?v=20251011c" defer></script>
+    <script src="js/menu-availability.js?v=20251102a" defer></script>
     <script src="js/menu-image-modal.js?v=20251011c" defer></script>
     <script src="js/order-api-config.js?v=20261017-api1"></script>
     <script src="js/reserve-order-idempotency.js?v=20251017i"></script>
     <script src="js/reserve-order-payload.js?v=20251017i"></script>
     <script src="js/reserve-order-client.js?v=20251017i"></script>
-    <script src="js/reserve.js?v=20251101b" defer></script>
+    <script src="js/reserve-store-status.js?v=20251101f"></script>
+    <script src="js/reserve.js?v=20251112b" defer></script>
     <script src="js/liff-env.js?v=20250904" defer></script>
-    <script src="js/liff-core.js?v=20251026a" defer></script>
+    <script src="js/liff-core.js?v=20251107c" defer></script>
     <script src="js/liff-message.js?v=20251017i" defer></script>
-    <script src="js/liff.js?v=20251101b" defer></script>
+    <script src="js/liff.js?v=20251107c" defer></script>
 
 
   </body>

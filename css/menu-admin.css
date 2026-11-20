@@ -96,3 +96,72 @@ body.menu-admin-body {
 .menu-admin__badge[hidden] {
   display: none !important;
 }
+
+.menu-admin__store-closed {
+  margin-bottom: 14px;
+  padding: 8px 6px 10px;
+  border: 2px solid #ccc;
+  background: #fff;
+}
+
+.menu-admin__store-closed--on {
+  background: #fff8ed;
+  border-color: #d4a017;
+}
+
+.menu-admin__store-closed-title {
+  margin: 0 0 6px;
+  padding: 2px 4px;
+  font-size: 15px;
+  font-weight: bold;
+  background: #ddd;
+  border-left: 4px solid #666;
+}
+
+.menu-admin__store-closed-label {
+  display: block;
+  padding: 6px 2px;
+  cursor: pointer;
+}
+
+.menu-admin__store-closed-check {
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+}
+
+.menu-admin__store-closed-name {
+  font-size: 17px;
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+.menu-admin__store-closed-badge {
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #92400e;
+  vertical-align: middle;
+}
+
+.menu-admin__store-closed-badge[hidden] {
+  display: none !important;
+}
+
+.menu-admin__store-closed-note {
+  margin: 0;
+  padding: 0 2px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #444;
+}
+
+.menu-admin__section-heading {
+  margin: 0 0 8px;
+  padding: 2px 4px;
+  font-size: 15px;
+  font-weight: bold;
+  background: #ddd;
+  border-left: 4px solid #666;
+}
