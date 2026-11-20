@@ -116,6 +116,15 @@
         ]
       },
       {
+        "source": "/line-entry/news/delivery.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/delivery-cfg-k8m3p2w9.html",
         "headers": [
           {
@@ -189,6 +198,10 @@
       {
         "source": "/line-entry/news/tonjiru",
         "destination": "/line-entry/news/tonjiru.html"
+      },
+      {
+        "source": "/line-entry/news/delivery",
+        "destination": "/line-entry/news/delivery.html"
       }
     ]
   },
