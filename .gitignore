@@ -35,3 +35,6 @@ workers/reserve-orders-api/.wrangler/
 
 # ローカル依存・テスト出力
 node_modules/
+
+# デプロイ用バックアップ（ローカルのみ）
+.deploy-backup/
