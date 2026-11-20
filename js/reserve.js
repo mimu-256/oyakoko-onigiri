@@ -477,12 +477,18 @@
 
   function clearCart() {
     if (!cartTotals().count) return;
-    if (!confirm("カート内の商品をすべて削除しますか？")) return;
-    cart = {};
-    bentoCart = {};
-    saveCart();
-    if (window.ReserveOrderIdempotency) ReserveOrderIdempotency.markCartChanged();
-    sync();
+    var doClear = function () {
+      cart = {};
+      bentoCart = {};
+      saveCart();
+      if (window.ReserveOrderIdempotency) ReserveOrderIdempotency.markCartChanged();
+      sync();
+    };
+    if (window.AppDialog) {
+      AppDialog.confirm("カート内の商品をすべて削除しますか？", doClear);
+    } else if (confirm("カート内の商品をすべて削除しますか？")) {
+      doClear();
+    }
   }
 
   function totalBentoQty() {

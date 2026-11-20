@@ -405,11 +405,17 @@
 
   function clearCart() {
     if (!cartTotals().count) return;
-    if (!confirm("カート内の商品をすべて削除しますか？")) return;
-    cart = {};
-    bentoCart = {};
-    saveCart();
-    sync();
+    var doClear = function () {
+      cart = {};
+      bentoCart = {};
+      saveCart();
+      sync();
+    };
+    if (window.AppDialog) {
+      AppDialog.confirm("カート内の商品をすべて削除しますか？", doClear);
+    } else if (confirm("カート内の商品をすべて削除しますか？")) {
+      doClear();
+    }
   }
 
   function formatTotalCount(count) {

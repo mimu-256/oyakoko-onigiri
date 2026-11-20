@@ -2835,3 +2835,59 @@ body.menu-image-modal-open {
   color: #b3261e;
   line-height: 1.5;
 }
+
+/* アプリ内の確認ダイアログ（URL表示なし） */
+.app-dialog[hidden] {
+  display: none;
+}
+.app-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.app-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+.app-dialog__panel {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 18px 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+.app-dialog__text {
+  margin: 0 0 18px;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+}
+.app-dialog__actions {
+  display: flex;
+  gap: 10px;
+}
+.app-dialog__btn {
+  flex: 1;
+  padding: 11px 0;
+  border: 0;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.app-dialog__btn--cancel {
+  background: #eee;
+  color: #333;
+}
+.app-dialog__btn--ok {
+  background: #333;
+  color: #fff;
+}
