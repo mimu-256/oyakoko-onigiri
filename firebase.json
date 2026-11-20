@@ -17,6 +17,24 @@
     ],
     "headers": [
       {
+        "source": "/line-entry",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/line-entry/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/reserve.html",
         "headers": [
           {
