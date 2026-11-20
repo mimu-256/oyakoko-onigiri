@@ -1010,6 +1010,14 @@
       cartLines.appendChild(li);
     });
     if (cartFooter) cartFooter.hidden = !has;
+    var bulkMinHint = document.getElementById("bulk-min-hint");
+    var bulkOnigiriCount = document.getElementById("bulk-onigiri-count");
+    var bulkSideCount = document.getElementById("bulk-side-count");
+    var onigiriQty = totalOnigiriQty();
+    var sideQty = totalSideDishQty();
+    if (bulkOnigiriCount) bulkOnigiriCount.textContent = String(onigiriQty);
+    if (bulkSideCount) bulkSideCount.textContent = String(sideQty);
+    if (bulkMinHint) bulkMinHint.hidden = !has || meetsBulkMinimum();
     if (checkoutBtn) checkoutBtn.disabled = !canSubmitBulk();
   }
 
