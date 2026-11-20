@@ -145,3 +145,63 @@ body.delivery-admin-body {
 .delivery-admin__slot-check input:not(:checked) + .delivery-admin__slot-mark {
   color: #9ca3af;
 }
+
+/* 日ごとの配達（月表示） */
+.delivery-admin-month {
+  margin-top: 16px;
+}
+.delivery-admin-month__note {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: #666;
+}
+.delivery-month-grid {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.delivery-month-grid th {
+  padding: 6px 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.delivery-month-grid th.is-sun {
+  color: #c0392b;
+}
+.delivery-month-grid th.is-sat {
+  color: #2f6a9a;
+}
+.delivery-month-grid td {
+  padding: 2px;
+  border: 1px solid #eee;
+  height: 64px;
+  vertical-align: top;
+}
+.delivery-month-grid__cell label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+  cursor: pointer;
+}
+.delivery-month-grid__num {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.delivery-month-grid__mark {
+  font-size: 0.7rem;
+  color: #2f6a4a;
+}
+.delivery-month-grid__cell.is-off {
+  background: #f3f3f3;
+}
+.delivery-month-grid__cell.is-off .delivery-month-grid__mark {
+  color: #999;
+}
+.delivery-month-grid__cell.is-out {
+  color: #bbb;
+}
+.delivery-month-grid__cell.is-out label {
+  cursor: default;
+}

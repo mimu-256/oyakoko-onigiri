@@ -162,12 +162,14 @@
         if (err && err.message === "slot unavailable") {
           if (confirmSend) confirmSend.disabled = false;
           if (submitBtn) submitBtn.disabled = false;
+          if (window.refreshBulkSubmitState) window.refreshBulkSubmitState();
           return;
         }
         console.error(err);
         notifyError("送信に失敗しました");
         if (confirmSend) confirmSend.disabled = false;
         if (submitBtn) submitBtn.disabled = false;
+          if (window.refreshBulkSubmitState) window.refreshBulkSubmitState();
       });
   }
 
@@ -186,6 +188,7 @@
 
         if (submitBtn) {
           submitBtn.disabled = false;
+          if (window.refreshBulkSubmitState) window.refreshBulkSubmitState();
         }
 
         return liff.getProfile();
@@ -205,6 +208,7 @@
 
   if (window.LiffEnv && LiffEnv.shouldSkipInit()) {
     if (submitBtn) submitBtn.disabled = false;
+          if (window.refreshBulkSubmitState) window.refreshBulkSubmitState();
   } else if (window.LiffCore) {
     initLiff();
   }

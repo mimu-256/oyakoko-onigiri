@@ -140,6 +140,7 @@
       deliverySlotSelected.textContent = "選択中：" + slot.label;
       deliverySlotSelected.hidden = false;
     }
+    updateSubmitState();
   }
 
   function setAddressFieldRequired(required) {
@@ -192,6 +193,36 @@
     alert("配達日時を選んでください。");
     return false;
   }
+
+  /** 必須項目（お名前・電話・郵便番号・番地・配達日時）が揃うまで確認ボタンを押せなくする */
+  var checkoutForm = document.getElementById("reserve-submit")
+    ? document.getElementById("reserve-submit").form
+    : null;
+
+  function updateSubmitState() {
+    var btn = document.getElementById("reserve-submit");
+    if (!btn) return;
+    var missing = [];
+    [["r-name", "お名前"], ["r-tel", "お電話番号"], ["r-zip", "郵便番号"], ["r-street", "番地"]].forEach(function (f) {
+      var el = document.getElementById(f[0]);
+      if (el && !el.checkValidity()) missing.push(f[1]);
+    });
+    if (!(deliverySlot && deliverySlot.date)) missing.push("配達日時");
+    var ok = missing.length === 0 && (!checkoutForm || checkoutForm.checkValidity());
+    btn.disabled = !ok;
+    var note = document.getElementById("reserve-missing");
+    if (note) {
+      note.textContent = missing.length ? "未入力：" + missing.join("、") : "";
+      note.hidden = missing.length === 0;
+    }
+  }
+
+  if (checkoutForm) {
+    checkoutForm.addEventListener("input", updateSubmitState);
+    checkoutForm.addEventListener("change", updateSubmitState);
+  }
+  window.refreshBulkSubmitState = updateSubmitState;
+  updateSubmitState();
 
   window.canSubmitBulkOrder = canSubmitBulk;
   window.validateBulkCheckout = validateDeliverySlot;

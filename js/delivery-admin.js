@@ -258,5 +258,8 @@
     });
   }
 
+  /* 月表示（delivery-admin-month.js）から日ごとの配達ON/OFFを使うための公開口 */
+  window.DeliveryAdminApi = { setDayOpen: setDayOpen, isDayOpen: isDayOpen };
+
   init();
 })();

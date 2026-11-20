@@ -2828,3 +2828,10 @@ body.menu-image-modal-open {
 .news-page__fine[hidden] {
   display: none;
 }
+
+.reserve-form__missing {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: #b3261e;
+  line-height: 1.5;
+}

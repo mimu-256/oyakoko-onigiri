@@ -16,7 +16,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
     <link rel="stylesheet" href="css/style.css?v=20250904" />
-    <link rel="stylesheet" href="css/reserve.css?v=20251102l" />
+    <link rel="stylesheet" href="css/reserve.css?v=20251120a" />
     <link rel="stylesheet" href="css/delivery-admin.css?v=20251102m" />
   </head>
   <body class="reserve-body reserve-checkout-body">
@@ -130,6 +130,7 @@
             <p class="reserve-form__note">
               内容は目安です。在庫・配達状況によりご希望に沿えない場合、担当よりご連絡する場合がございます。
             </p>
+            <p class="reserve-form__missing" id="reserve-missing" role="status" aria-live="polite" hidden></p>
             <button type="button" class="reserve-form__submit" id="reserve-submit">注文内容を確認する</button>
           </form>
         </main>
@@ -147,7 +148,6 @@
     >
       <div class="bulk-confirm-modal__panel">
         <h2 class="bulk-confirm-modal__title" id="bulk-confirm-title">注文内容の確認</h2>
-        <p class="bulk-confirm-modal__lead">以下の内容でLINEに送信します。よろしければ送信してください。</p>
         <pre class="bulk-confirm-modal__body" id="bulk-confirm-body"></pre>
         <div class="bulk-confirm-modal__actions">
           <button type="button" class="bulk-confirm-modal__back" id="bulk-confirm-cancel">戻る</button>
@@ -170,10 +170,10 @@
     <script src="js/delivery-schedule.js?v=20251102j" defer></script>
     <script src="js/delivery-slot-picker.js?v=20251102j" defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="js/reserve-bulk-checkout.js?v=20251102j" defer></script>
+    <script src="js/reserve-bulk-checkout.js?v=20251120b" defer></script>
     <script src="js/liff-env.js?v=20250904" defer></script>
     <script src="js/liff-core.js?v=20251009" defer></script>
     <script src="js/liff-message.js?v=20251017i" defer></script>
-    <script src="js/liff-bulk.js?v=20251102h" defer></script>
+    <script src="js/liff-bulk.js?v=20251120a" defer></script>
   </body>
 </html>

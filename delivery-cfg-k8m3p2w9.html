@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex, nofollow" />
     <title>配達枠設定</title>
     <link rel="stylesheet" href="css/reserve.css?v=20251102l" />
-    <link rel="stylesheet" href="css/delivery-admin.css?v=20251102m" />
+    <link rel="stylesheet" href="css/delivery-admin.css?v=20251120a" />
   </head>
   <body class="delivery-admin-body">
     <div class="delivery-admin">
@@ -23,12 +23,26 @@
         </header>
         <div class="delivery-slot-modal__body delivery-admin__grid-body" id="delivery-admin-grid"></div>
       </section>
+
+      <section class="delivery-admin__grid-panel delivery-admin-month" aria-labelledby="delivery-admin-month-title">
+        <header class="delivery-slot-modal__head delivery-admin__grid-head">
+          <h2 class="delivery-slot-modal__title" id="delivery-admin-month-title">日ごとの配達（月）</h2>
+          <div class="delivery-slot-modal__nav">
+            <button type="button" class="delivery-slot-modal__nav-btn" id="delivery-month-prev">前の月へ</button>
+            <div class="delivery-slot-modal__month" id="delivery-month-label" aria-live="polite"></div>
+            <button type="button" class="delivery-slot-modal__nav-btn" id="delivery-month-next">次の月へ</button>
+          </div>
+        </header>
+        <p class="delivery-admin-month__note">チェック＝その日は配達あり。外すと、その日は全時間帯が受付停止になります。</p>
+        <div class="delivery-admin-month__body" id="delivery-month-grid"></div>
+      </section>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js?v=20251022d"></script>
     <script src="js/delivery-schedule.js?v=20251022d"></script>
-    <script src="js/delivery-admin.js?v=20251022d"></script>
+    <script src="js/delivery-admin.js?v=20251120a"></script>
+    <script src="js/delivery-admin-month.js?v=20251120b"></script>
   </body>
 </html>
