@@ -173,6 +173,18 @@
       });
   }
 
+  /** 最初のページ（liff-bulk-entry.js）で控えたLINEのお名前を、先に入れておく */
+  (function prefillCachedName() {
+    try {
+      var cached = sessionStorage.getItem("oyakoko_bulk_line_name_v1");
+      var nameInput = document.getElementById("r-name");
+      if (cached && nameInput && !nameInput.value) {
+        nameInput.value = cached;
+        nameInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    } catch (e) {}
+  })();
+
   function initLiff() {
     LiffCore.init()
       .then(function () {
