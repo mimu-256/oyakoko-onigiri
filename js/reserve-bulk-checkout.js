@@ -2,8 +2,8 @@
   var STORAGE = "oyakoko_reserve_bulk_cart_v1";
   var MIN_ONIGIRI_QTY = 20;
   var MIN_SIDE_DISH_QTY = 5;
-  var SIDE_DISH_ITEM_ID = "m018";
-  var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true };
+  var SIDE_DISH_ITEM_IDS = { m018: true, m020: true };
+  var ORDER_OTHER_ITEM_IDS = { m017: true, m018: true, m020: true, m021: true };
 
   function loadState() {
     try {
@@ -31,8 +31,12 @@
 
   function sideDishQtyFromState(state) {
     var items = state.cart && state.cart.items ? state.cart.items : {};
-    var q = items[SIDE_DISH_ITEM_ID];
-    return q > 0 ? q : 0;
+    var n = 0;
+    Object.keys(SIDE_DISH_ITEM_IDS).forEach(function (id) {
+      var q = items[id];
+      if (q > 0) n += q;
+    });
+    return n;
   }
 
   function canSubmitBulk() {
