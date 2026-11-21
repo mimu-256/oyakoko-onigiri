@@ -1989,10 +1989,16 @@ body.reserve-sheet-open {
   padding: 0;
 }
 
-.delivery-slot-grid__slot--open:hover,
 .delivery-slot-grid__slot--open.is-selected {
   background: #ffe8f0;
   box-shadow: inset 0 0 0 2px #e07a9a;
+}
+
+@media (hover: hover) {
+  .delivery-slot-grid__slot--open:hover {
+    background: #ffe8f0;
+    box-shadow: inset 0 0 0 2px #e07a9a;
+  }
 }
 
 .delivery-slot-grid__slot--blocked,
